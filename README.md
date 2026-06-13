@@ -2,21 +2,11 @@
 
 A multi-tenant learning platform where teachers manage class material and build interactive quiz games, and students learn through play — earning points, climbing leaderboards, and tracking their progress.
 
-🔗 **Live demo:** https://triadak.vercel.app
+🔗 **Live:** https://triadak.vercel.app
 
 > Built with React and Supabase, deployed on Vercel.
 
 ---
-<img width="800" height="586" alt="1779741794594" src="https://github.com/user-attachments/assets/73e446ac-eb6f-42d0-bedf-3d8c6b2423c3" />
-<img width="656" height="411" alt="1779741794304" src="https://github.com/user-attachments/assets/97baa2f7-3afe-4b0c-87d6-5bce9c3c0a03" />
-<img width="1086" height="520" alt="1779741794314" src="https://github.com/user-attachments/assets/a059a5b4-bf30-4e37-8df8-1395099c1dec" />
-<img width="688" height="323" alt="1779741794227" src="https://github.com/user-attachments/assets/fbff762d-9c71-4ab6-ab3b-74eff136be61" />
-<img width="1118" height="386" alt="1779741794185" src="https://github.com/user-attachments/assets/3fd840e6-5627-4f74-87c1-1eb683dece7a" />
-<img width="1080" height="639" alt="1779741794141" src="https://github.com/user-attachments/assets/71dcd019-077c-4094-81b5-2f785a86d5f8" />
-<img width="1077" height="641" alt="1779741794540" src="https://github.com/user-attachments/assets/1e2d0fa0-e949-44f0-a7b7-225ecc845e6c" />
-<img width="480" height="632" alt="1779741794127" src="https://github.com/user-attachments/assets/bba4ebae-ccbd-464e-9743-30eedc237cd0" />
-
-
 
 ## What it does
 
@@ -63,5 +53,15 @@ Live and in use. Things I'd improve next:
 - Add automated tests
 
 ---
+
+## Some images from the site
+## Screenshots
+
+| | |
+|:---:|:---:|
+| <img src="https://github.com/user-attachments/assets/73e446ac-eb6f-42d0-bedf-3d8c6b2423c3" width="410"><br>*Αρχική* | <img src="https://github.com/user-attachments/assets/a059a5b4-bf30-4e37-8df8-1395099c1dec" width="410"><br>*Dashboard* |
+| <img src="https://github.com/user-attachments/assets/fbff762d-9c71-4ab6-ab3b-74eff136be61" width="410"><br>*Μαθήματα* | <img src="https://github.com/user-attachments/assets/3fd840e6-5627-4f74-87c1-1eb683dece7a" width="410"><br>*Δραστηριότητες* |
+| <img src="https://github.com/user-attachments/assets/71dcd019-077c-4094-81b5-2f785a86d5f8" width="410"><br>*Admin panel* | <img src="https://github.com/user-attachments/assets/1e2d0fa0-e949-44f0-a7b7-225ecc845e6c" width="410"><br>*Analytics* |
+| <img src="https://github.com/user-attachments/assets/97baa2f7-3afe-4b0c-87d6-5bce9c3c0a03" width="410"><br>*Παιχνίδι* | <img src="https://github.com/user-attachments/assets/bba4ebae-ccbd-464e-9743-30eedc237cd0" width="410"><br>*Mobile view* |
 
 *Built by Ioannis Kermizidis.*
