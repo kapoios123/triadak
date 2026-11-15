@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>3,14 — θα ξανασυναντηθούμε</title>
+<meta name="description" content="Δύο βραχίονες, ο ένας 3,14 φορές πιο γρήγορος από τον άλλο. Μετά από 50 γύρους ξανασυναντιούνται.">
+<meta name="theme-color" content="#07040f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07040f;
+    --violet:#8f72ff;
+    --lavender:#c9bcff;
+    --gold:#f3cf7a;
+    --text:#efeaff;
+    --muted:#9b91c6;
+    --glass:rgba(255,255,255,.06);
+    --glass-line:rgba(201,188,255,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text)}
+  body{
+    font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+    display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+  }
+  #bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+
+  header{position:relative;z-index:3;text-align:center;padding:max(26px,env(safe-area-inset-top)) 16px 0}
+  h1{
+    margin:0;font-weight:500;font-style:italic;line-height:1.12;
+    font-size:clamp(25px,5.6vw,50px);letter-spacing:.005em;
+    text-shadow:0 0 24px rgba(143,114,255,.35);
+  }
+  h1 .num{font-style:normal;font-weight:500}
+  h1 .key{color:var(--gold);font-weight:700;text-shadow:0 0 18px rgba(243,207,122,.5)}
+  .met h1 .key{animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{50%{text-shadow:0 0 34px rgba(243,207,122,.95),0 0 8px rgba(255,240,200,.9)}}
+  #attempt{
+    margin-top:4px;font-style:italic;color:var(--lavender);opacity:.85;
+    font-size:clamp(17px,3.4vw,24px);font-variant-numeric:lining-nums;
+  }
+
+  #stage{position:relative;flex:1;min-height:0;z-index:1;cursor:pointer}
+  #stage canvas{position:absolute;inset:0;width:100%;height:100%}
+  #bloom{filter:blur(5px);opacity:.55;mix-blend-mode:screen;transition:opacity 1.2s ease}
+  .met #bloom{opacity:1}
+  #trail{mix-blend-mode:screen;transition:opacity 1.8s ease}
+  #arms{mix-blend-mode:screen}
+  .fading #trail,.fading #bloom{opacity:0}
+
+  #story{
+    position:relative;z-index:3;text-align:center;padding:2px 16px 6px;min-height:64px;
+    font-style:italic;color:var(--muted);font-size:clamp(15px,2.9vw,19px);line-height:1.35;
+    font-variant-numeric:lining-nums;
+  }
+  #story .big{display:block;font-size:clamp(26px,5.4vw,40px);color:var(--gold);font-weight:500;
+    text-shadow:0 0 22px rgba(243,207,122,.45);animation:rise 1.4s ease both}
+  #story .hope{color:var(--lavender)}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  footer{
+    position:relative;z-index:3;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;
+    padding:6px 16px max(14px,env(safe-area-inset-bottom));
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:14px;
+    transition:opacity .4s ease;
+  }
+  .embed footer{display:none}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 6px;border-radius:999px;
+    background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  }
+  .seg button,.icon{
+    appearance:none;border:0;background:transparent;color:var(--text);cursor:pointer;
+    height:28px;min-width:44px;padding:0 12px;border-radius:999px;font:inherit;font-weight:600;
+  }
+  .seg button{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;font-weight:700}
+  .seg button[aria-pressed="true"]{background:rgba(143,114,255,.35);box-shadow:0 0 14px rgba(143,114,255,.45) inset}
+  .icon{min-width:28px;width:38px;height:38px;padding:0;border-radius:50%;
+    background:var(--glass);border:1px solid var(--glass-line);font-size:17px;display:inline-grid;place-items:center}
+  .icon.text{font-size:12px;letter-spacing:.04em}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--lavender);outline-offset:2px}
+  .speed{padding:0 14px;color:var(--muted)}
+  .speed input{width:96px;accent-color:var(--violet)}
+
+  dialog{
+    max-width:min(560px,calc(100vw - 32px));border:1px solid var(--glass-line);border-radius:18px;
+    background:rgba(16,10,32,.92);color:var(--text);padding:22px 24px;
+    font-size:19px;line-height:1.5;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  }
+  dialog::backdrop{background:rgba(4,2,10,.6)}
+  dialog h2{margin:0 0 8px;font-style:italic;font-weight:500;font-size:28px;color:var(--lavender)}
+  dialog p{margin:.6em 0}
+  dialog b{color:var(--gold);font-weight:700}
+  dialog .close{float:right;margin:-6px -8px 0 8px}
+  .eq{font-style:normal;color:var(--lavender);font-size:17px;text-align:center;opacity:.85}
+
+  @media (max-width:420px){ .speed input{width:70px} .speed span{display:none} }
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+
+<header>
+  <h1 id="title"></h1>
+  <div id="attempt"></div>
+</header>
+
+<div id="stage" role="img" aria-label="">
+  <canvas id="bloom"></canvas>
+  <canvas id="trail"></canvas>
+  <canvas id="arms"></canvas>
+</div>
+
+<div id="story" aria-live="polite"></div>
+
+<footer id="controls">
+  <div class="pill seg" role="group" aria-label="mode">
+    <button id="m314" aria-pressed="true">3,14</button>
+    <button id="mpi" aria-pressed="false">π</button>
+  </div>
+  <label class="pill speed"><span id="speedLbl">ταχύτητα</span><input id="speed" type="range" min="0.25" max="4" step="0.05" value="1"></label>
+  <button class="icon" id="restart" title="">↺</button>
+  <button class="icon" id="infoBtn" title="">?</button>
+  <button class="icon text" id="langBtn">EN</button>
+</footer>
+
+<dialog id="info">
+  <button class="icon close" id="closeInfo" aria-label="close">✕</button>
+  <div id="infoBody"></div>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+  const TAU = Math.PI * 2;
+  const Q = new URLSearchParams(location.search);
+  const $ = s => document.querySelector(s);
+
+  // ---------- text ----------
+  const T = {
+    el: {
+      t314: 'Το <span class="num">3,14</span> σημαίνει πως <span class="key">θα</span> ξανασυναντηθούμε',
+      tpi:  'Το <span class="num">π</span> σημαίνει πως <span class="key">δεν</span> θα ξανασυναντηθούμε ποτέ',
+      attempt: n => `προσπάθεια ${n}`,
+      last: (n, d) => `η προσπάθεια ${n} πέρασε ${d} μακριά`,
+      best: (n, d) => `πιο κοντά μέχρι τώρα: προσπάθεια ${n} · ${d}`,
+      start: 'εκεί, στη χρυσή κουκκίδα, χωριστήκαμε',
+      met: 'Συναντηθήκαμε.',
+      metSub: n => `στην προσπάθεια ${n}, ακριβώς εκεί που χωρίσαμε`,
+      hope: '…μα θα περνάμε για πάντα όλο και πιο κοντά',
+      speed: 'ταχύτητα', restart: 'Από την αρχή', info: 'Τι σημαίνει;',
+      aria: 'Δύο περιστρεφόμενοι βραχίονες ζωγραφίζουν ένα φωτεινό λουλούδι',
+      infoHtml: `
+        <h2>Τι σημαίνει;</h2>
+        <p>Δύο βραχίονες γυρίζουν γύρω από το κέντρο. Ο δεύτερος, κρεμασμένος στην άκρη του πρώτου,
+        γυρίζει <b>3,14 φορές</b> πιο γρήγορα. Η άκρη του ζωγραφίζει τον δρόμο μας.</p>
+        <p>Το 3,14 είναι κλάσμα: <b>157 / 50</b>. Γι' αυτό, μετά από ακριβώς <b>50 γύρους</b>,
+        και οι δύο βραχίονες βρίσκονται ξανά εκεί που ξεκίνησαν. Ο δρόμος κλείνει. <b>Θα</b> ξανασυναντηθούμε.</p>
+        <p>Το <b>π</b> όμως είναι άρρητος — δεν γράφεται ποτέ ως κλάσμα. Ο δρόμος του δεν κλείνει ποτέ
+        και δεν ξαναπερνά ποτέ ακριβώς από το ίδιο σημείο. Περνά όμως ξανά και ξανά <b>όλο και πιο κοντά</b>:
+        στον 7ο γύρο, στον 113ο, στον 33.215ο… Όσο μικρή απόσταση κι αν ορίσεις, κάποτε θα φτάσει εκεί.</p>
+        <p class="eq">z(t) = e<sup>it</sup> + e<sup>i·k·t</sup> &nbsp;·&nbsp; k = 3,14 ή π</p>`
+    },
+    en: {
+      t314: '<span class="num">3.14</span> means we <span class="key">will</span> meet again',
+      tpi:  '<span class="num">π</span> means we will <span class="key">never</span> meet again',
+      attempt: n => `attempt ${n}`,
+      last: (n, d) => `attempt ${n} passed ${d} away`,
+      best: (n, d) => `closest so far: attempt ${n} · ${d}`,
+      start: 'there, at the golden dot, is where we parted',
+      met: 'We met.',
+      metSub: n => `on attempt ${n}, exactly where we parted`,
+      hope: '…but we will forever pass closer and closer',
+      speed: 'speed', restart: 'Start over', info: 'What does it mean?',
+      aria: 'Two rotating arms drawing a glowing flower',
+      infoHtml: `
+        <h2>What does it mean?</h2>
+        <p>Two arms spin around the centre. The second one, hanging from the tip of the first,
+        spins <b>3.14 times</b> faster. Its tip draws our path.</p>
+        <p>3.14 is a fraction: <b>157 / 50</b>. So after exactly <b>50 turns</b> both arms are back
+        where they started. The path closes. We <b>will</b> meet again.</p>
+        <p>But <b>π</b> is irrational — it can never be written as a fraction. Its path never closes and never
+        passes through the exact same point twice. Yet it comes back <b>closer and closer</b>:
+        on turn 7, on turn 113, on turn 33,215… However small a distance you pick, someday it gets there.</p>
+        <p class="eq">z(t) = e<sup>it</sup> + e<sup>i·k·t</sup> &nbsp;·&nbsp; k = 3.14 or π</p>`
+    }
+  };
+
+  // ---------- state ----------
+  let lang = Q.get('lang') === 'en' ? 'en' : 'el';
+  let mode = Q.get('mode') === 'pi' ? 'pi' : '314';
+  let speed = clamp(parseFloat(Q.get('speed')) || 1, 0.25, 4);
+  const embed = Q.has('embed');
+  const loop = Q.get('loop') !== '0';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (embed) document.body.classList.add('embed');
+
+  const K = () => (mode === '314' ? 3.14 : Math.PI);
+  // fractional part of k·n, exact for 3.14 = 157/50
+  const frac = n => (mode === '314' ? ((157 * n) % 50) / 50 : (Math.PI * n) % 1);
+  // distance of the tip from the meeting point after n full turns, 0..1 of the circle's diameter
+  const distAt = n => Math.abs(Math.sin(Math.PI * frac(n))) / 2;
+
+  let t = 0, n = 0, state = 'run', metAt = 0, best = null, lastD = null;
+  let recent = []; // [x, y, t]
+
+  // ---------- canvases ----------
+  const stage = $('#stage');
+  const bg = $('#bg'), bgx = bg.getContext('2d');
+  const trail = $('#trail'), tx = trail.getContext('2d');
+  const bloom = $('#bloom'), bx = bloom.getContext('2d');
+  const arms = $('#arms'), ax = arms.getContext('2d');
+  let W = 0, H = 0, dpr = 1, cx = 0, cy = 0, R = 0, a = 0;
+
+  function pos(s) {
+    const k = K();
+    return [cx + a * Math.cos(s) + a * Math.cos(k * s), cy - a * Math.sin(s) - a * Math.sin(k * s)];
+  }
+
+  function styleTrail() {
+    tx.globalCompositeOperation = 'lighter';
+    tx.lineJoin = tx.lineCap = 'round';
+    tx.lineWidth = Math.max(1, 0.9 * dpr);
+    tx.strokeStyle = 'rgba(150,120,255,0.26)';
+  }
+
+  function layout() {
+    const r = stage.getBoundingClientRect();
+    W = Math.max(1, r.width); H = Math.max(1, r.height);
+    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    for (const c of [trail, arms]) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    bloom.width = Math.max(1, Math.round(W * dpr / 4)); bloom.height = Math.max(1, Math.round(H * dpr / 4));
+    cx = W * dpr / 2; cy = H * dpr / 2;
+    R = Math.min(W, H) / 2 * 0.93 * dpr; a = R / 2;
+    drawBackground();
+    redrawTrail();
+  }
+
+  function drawBackground() {
+    const w = innerWidth, h = innerHeight, d = Math.min(window.devicePixelRatio || 1, 2);
+    bg.width = Math.round(w * d); bg.height = Math.round(h * d);
+    bgx.setTransform(d, 0, 0, d, 0, 0);
+    bgx.fillStyle = '#07040f'; bgx.fillRect(0, 0, w, h);
+    const neb = (x, y, r, c) => {
+      const g = bgx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)');
+      bgx.fillStyle = g; bgx.fillRect(0, 0, w, h);
+    };
+    neb(w * .5, h * .5, Math.max(w, h) * .6, 'rgba(60,30,120,.35)');
+    neb(w * .15, h * .2, Math.max(w, h) * .35, 'rgba(90,40,140,.18)');
+    neb(w * .85, h * .85, Math.max(w, h) * .4, 'rgba(40,30,110,.22)');
+    let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const count = Math.round(w * h / 5000);
+    for (let i = 0; i < count; i++) {
+      const x = rnd() * w, y = rnd() * h, s = rnd();
+      bgx.fillStyle = `rgba(${200 + s * 55 | 0},${190 + s * 40 | 0},255,${0.15 + s * s * 0.6})`;
+      bgx.beginPath(); bgx.arc(x, y, 0.3 + s * s * 1.1, 0, TAU); bgx.fill();
+    }
+  }
+
+  // Re-draw the whole path from scratch (after resize / mode change).
+  function redrawTrail() {
+    tx.clearRect(0, 0, trail.width, trail.height);
+    styleTrail();
+    const step = 0.012 / K();
+    let s = mode === 'pi' ? Math.max(0, (n - 80) * TAU) : 0;
+    while (s < t) {
+      tx.beginPath();
+      let p = pos(s); tx.moveTo(p[0], p[1]);
+      for (let i = 0; i < 180 && s < t; i++) { s = Math.min(t, s + step); p = pos(s); tx.lineTo(p[0], p[1]); }
+      tx.stroke();
+    }
+    recent = [];
+  }
+
+  // ---------- simulation ----------
+  const turnsPerSec = () => speed * (0.3 + Math.min(n, 20) * 0.065); // gentle start, then speeds up
+
+  function advance(dt) {
+    let remaining = turnsPerSec() * TAU * dt;
+    const maxStep = 0.012 / K();
+    let p = pos(t);
+    tx.beginPath(); tx.moveTo(p[0], p[1]);
+    let drew = false;
+    while (remaining > 1e-12 && state === 'run') {
+      const boundary = (n + 1) * TAU;
+      let step = Math.min(maxStep, remaining), hit = false;
+      if (t + step >= boundary) { step = boundary - t; hit = true; }
+      t = hit ? boundary : t + step;
+      remaining -= step;
+      p = pos(t); tx.lineTo(p[0], p[1]); drew = true;
+      recent.push([p[0], p[1], t]);
+      if (hit) { n++; onTurn(); }
+    }
+    if (drew) tx.stroke();
+    const cut = t - 0.55;
+    let i = 0; while (i < recent.length && recent[i][2] < cut) i++;
+    if (i) recent.splice(0, i);
+  }
+
+  function onTurn() {
+    const d = distAt(n);
+    lastD = d;
+    if (!best || d < best.d) best = { n, d };
+    if (mode === 'pi' && n > 80) { // keep the endless path breathing instead of saturating
+      tx.save(); tx.globalCompositeOperation = 'destination-out';
+      tx.fillStyle = 'rgba(0,0,0,0.035)'; tx.fillRect(0, 0, trail.width, trail.height);
+      tx.restore(); styleTrail();
+    }
+    if (d < 1e-12) meet();
+    updateText();
+  }
+
+  function meet() {
+    state = 'met';
+    metAt = performance.now();
+    document.body.classList.add('met');
+  }
+
+  function reset() {
+    t = 0; n = 0; best = null; lastD = null; recent = []; state = 'run';
+    document.body.classList.remove('met', 'fading');
+    tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
+    updateText();
+  }
+
+  function fastForward(turns) {
+    while (state === 'run' && n < turns) advance(0.25);
+  }
+
+  // ---------- drawing (arms, glow, meeting point) ----------
+  function drawArms(now) {
+    ax.clearRect(0, 0, arms.width, arms.height);
+    ax.globalCompositeOperation = 'lighter';
+
+    // bright heart in the middle, growing as the flower fills in
+    const fill = mode === '314' ? Math.min(1, n / 50) : Math.min(1, n / 60);
+    let g = ax.createRadialGradient(cx, cy, 0, cx, cy, R * .22);
+    g.addColorStop(0, `rgba(255,255,255,${0.25 + 0.55 * fill})`);
+    g.addColorStop(.12, `rgba(200,180,255,${0.18 + 0.3 * fill})`);
+    g.addColorStop(1, 'rgba(120,90,255,0)');
+    ax.fillStyle = g; ax.fillRect(cx - R * .22, cy - R * .22, R * .44, R * .44);
+
+    // golden meeting point (where the tip started)
+    const mx = cx + 2 * a, my = cy;
+    const pulse = 0.5 + 0.5 * Math.sin(now / 520);
+    g = ax.createRadialGradient(mx, my, 0, mx, my, 16 * dpr);
+    g.addColorStop(0, `rgba(255,225,150,${0.55 + 0.35 * pulse})`);
+    g.addColorStop(1, 'rgba(243,207,122,0)');
+    ax.fillStyle = g; ax.beginPath(); ax.arc(mx, my, 16 * dpr, 0, TAU); ax.fill();
+    ax.fillStyle = '#ffe8ad'; ax.beginPath(); ax.arc(mx, my, 2.2 * dpr, 0, TAU); ax.fill();
+
+    // reunion burst
+    if (state === 'met') {
+      const e = (now - metAt) / 1000;
+      for (let k = 0; k < 3; k++) {
+        const ph = (e - k * 0.45);
+        if (ph < 0 || ph > 2.2) continue;
+        const rr = (8 + ph * 120) * dpr, al = Math.max(0, 1 - ph / 2.2);
+        ax.strokeStyle = `rgba(255,220,140,${0.8 * al})`; ax.lineWidth = 2 * dpr;
+        ax.beginPath(); ax.arc(mx, my, rr, 0, TAU); ax.stroke();
+      }
+      const f = Math.max(0, 1 - e / 1.6);
+      if (f > 0) {
+        g = ax.createRadialGradient(mx, my, 0, mx, my, R * .7);
+        g.addColorStop(0, `rgba(255,240,200,${0.9 * f})`); g.addColorStop(1, 'rgba(255,220,150,0)');
+        ax.fillStyle = g; ax.fillRect(0, 0, arms.width, arms.height);
+      }
+    }
+
+    // comet tail behind the tip
+    if (recent.length > 1) {
+      ax.lineCap = 'round';
+      const t0 = recent[0][2], span = Math.max(1e-6, t - t0);
+      for (let i = 1; i < recent.length; i++) {
+        const q = (recent[i][2] - t0) / span;
+        ax.strokeStyle = `rgba(255,255,255,${0.75 * q * q})`;
+        ax.lineWidth = (0.8 + 1.6 * q) * dpr;
+        ax.beginPath(); ax.moveTo(recent[i - 1][0], recent[i - 1][1]); ax.lineTo(recent[i][0], recent[i][1]); ax.stroke();
+      }
+    }
+
+    // the two arms
+    if (state !== 'met' || (now - metAt) < 900) {
+      const ex = cx + a * Math.cos(t), ey = cy - a * Math.sin(t);
+      const [px, py] = pos(t);
+      ax.save();
+      ax.shadowColor = 'rgba(200,185,255,.95)'; ax.shadowBlur = 10 * dpr;
+      ax.strokeStyle = 'rgba(255,255,255,.88)'; ax.lineWidth = 1.5 * dpr; ax.lineCap = 'round';
+      ax.beginPath(); ax.moveTo(cx, cy); ax.lineTo(ex, ey); ax.lineTo(px, py); ax.stroke();
+      ax.fillStyle = '#fff';
+      ax.beginPath(); ax.arc(ex, ey, 2.6 * dpr, 0, TAU); ax.fill();
+      ax.restore();
+      g = ax.createRadialGradient(px, py, 0, px, py, 14 * dpr);
+      g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(220,205,255,.7)'); g.addColorStop(1, 'rgba(150,120,255,0)');
+      ax.fillStyle = g; ax.beginPath(); ax.arc(px, py, 14 * dpr, 0, TAU); ax.fill();
+    }
+    ax.globalCompositeOperation = 'source-over';
+  }
+
+  // ---------- text ----------
+  const fmt = d => (d * 100).toLocaleString(lang === 'el' ? 'el-GR' : 'en-US',
+    { maximumSignificantDigits: 2 }) + '%';
+
+  function updateText() {
+    const L = T[lang];
+    $('#title').innerHTML = mode === '314' ? L.t314 : L.tpi;
+    $('#attempt').textContent = L.attempt(state === 'met' ? n : n + 1);
+    let html;
+    if (state === 'met') {
+      html = `<span class="big">${L.met}</span>${L.metSub(n)}`;
+    } else if (!n) {
+      html = L.start;
+    } else {
+      html = L.last(n, fmt(lastD));
+      if (best) html += `<br>${L.best(best.n, fmt(best.d))}`;
+      if (mode === 'pi' && n >= 7) html += `<br><span class="hope">${L.hope}</span>`;
+    }
+    $('#story').innerHTML = html;
+  }
+
+  function applyLang() {
+    const L = T[lang];
+    document.documentElement.lang = lang;
+    document.title = lang === 'el' ? '3,14 — θα ξανασυναντηθούμε' : '3.14 — we will meet again';
+    $('#m314').textContent = lang === 'el' ? '3,14' : '3.14';
+    $('#speedLbl').textContent = L.speed;
+    for (const [id, v] of [['#restart', L.restart], ['#infoBtn', L.info]]) { $(id).title = v; $(id).setAttribute('aria-label', v); }
+    $('#langBtn').textContent = lang === 'el' ? 'EN' : 'ΕΛ';
+    $('#infoBody').innerHTML = L.infoHtml;
+    stage.setAttribute('aria-label', L.aria);
+    updateText();
+  }
+
+  function setMode(m) {
+    mode = m;
+    $('#m314').setAttribute('aria-pressed', m === '314');
+    $('#mpi').setAttribute('aria-pressed', m === 'pi');
+    reset();
+    if (reduced) fastForward(m === '314' ? 50 : 120);
+    syncUrl();
+  }
+
+  function syncUrl() {
+    if (embed) return;
+    const u = new URL(location.href);
+    mode === 'pi' ? u.searchParams.set('mode', 'pi') : u.searchParams.delete('mode');
+    lang === 'en' ? u.searchParams.set('lang', 'en') : u.searchParams.delete('lang');
+    try { history.replaceState(null, '', u); } catch (e) {}
+  }
+
+  // ---------- controls ----------
+  $('#m314').onclick = () => setMode('314');
+  $('#mpi').onclick = () => setMode('pi');
+  $('#restart').onclick = () => setMode(mode);
+  const sp = $('#speed'); sp.value = speed; sp.oninput = () => { speed = +sp.value; };
+  $('#langBtn').onclick = () => { lang = lang === 'el' ? 'en' : 'el'; applyLang(); syncUrl(); };
+  const dlg = $('#info');
+  $('#infoBtn').onclick = () => dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', '');
+  $('#closeInfo').onclick = () => dlg.close();
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  stage.addEventListener('click', () => { if (state === 'met') setMode(mode); });
+
+  let paused = false;
+  document.addEventListener('visibilitychange', () => { paused = document.hidden; last = performance.now(); });
+  addEventListener('resize', () => { clearTimeout(layout.tm); layout.tm = setTimeout(layout, 80); });
+
+  // ---------- loop ----------
+  let last = performance.now(), fadeStarted = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!paused && state === 'run') advance(dt);
+
+    if (state === 'met' && loop && !reduced && now - metAt > 9000 && !fadeStarted) {
+      fadeStarted = now; document.body.classList.add('fading');
+    }
+    if (fadeStarted && now - fadeStarted > 2000) { fadeStarted = 0; reset(); }
+
+    drawArms(now);
+    bx.clearRect(0, 0, bloom.width, bloom.height);
+    bx.drawImage(trail, 0, 0, bloom.width, bloom.height);
+    requestAnimationFrame(frame);
+  }
+
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  // ---------- go ----------
+  applyLang();
+  layout();
+  setMode(mode);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
