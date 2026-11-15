@@ -25,10 +25,12 @@
 
   header{position:relative;z-index:3;text-align:center;padding:max(20px,env(safe-area-inset-top)) 16px 0;min-height:84px}
   #forline{font-style:italic;color:var(--muted);font-size:clamp(16px,3.4vw,21px);min-height:1.2em;letter-spacing:.02em}
-  #forline b{color:var(--gold);font-weight:500}
+  #forline b{color:var(--gold);font-weight:500;font-size:1.15em;letter-spacing:.03em;text-shadow:0 0 16px rgba(243,207,122,.45)}
   h1{margin:2px 0 0;font-weight:500;font-style:italic;line-height:1.1;font-size:clamp(30px,6.6vw,54px);
     text-shadow:0 0 26px rgba(143,114,255,.4)}
   h1 .gold{color:var(--gold);font-weight:700;font-style:normal;text-shadow:0 0 22px rgba(243,207,122,.55)}
+  #countline{font-family:var(--sans);font-size:12.5px;color:var(--lavender);letter-spacing:.02em;min-height:1.3em;margin-top:1px}
+  #countline b{color:var(--gold);font-weight:700}
   #statline{font-family:var(--sans);font-size:12.5px;color:var(--muted);letter-spacing:.03em;margin-top:4px;min-height:1.3em;opacity:.85}
 
   #stage{position:relative;flex:1;min-height:0;z-index:1}
@@ -44,8 +46,9 @@
   #lensWrap.on{opacity:1;transform:none}
   #lens{width:100%;height:100%;border-radius:50%;display:block;
     box-shadow:0 0 0 1px rgba(243,207,122,.55),0 0 0 6px rgba(20,12,40,.75),0 0 0 7px rgba(201,188,255,.25),0 10px 40px rgba(0,0,0,.6),0 0 40px rgba(143,114,255,.35)}
-  #lensInfo{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:12px;white-space:nowrap;
-    font-family:var(--sans);font-size:11.5px;letter-spacing:.04em;color:var(--lavender);text-align:center;line-height:1.5;
+  #lensInfo{position:absolute;right:0;top:100%;margin-top:12px;white-space:nowrap;padding:5px 10px;border-radius:12px;
+    background:rgba(10,6,22,.72);border:1px solid rgba(201,188,255,.14);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    font-family:var(--sans);font-size:11.5px;letter-spacing:.03em;color:var(--lavender);text-align:right;line-height:1.5;
     text-shadow:0 1px 6px #000}
   #lensInfo b{color:var(--gold);font-weight:600}
 
@@ -132,6 +135,7 @@
   <div id="forline"></div>
   <h1 id="counter"></h1>
   <div id="statline"></div>
+  <div id="countline"></div>
 </header>
 
 <div id="stage" role="img">
@@ -233,7 +237,7 @@ const T = {
       0: 'Η χρυσή κουκκίδα είσαι <b>εσύ</b>.',
       1: 'Η φωτεινή άκρη είμαι <b>εγώ</b>. Κάθε γύρος — μια προσπάθεια να έρθω κοντά σου.',
       4: 'Ο δεύτερος κύκλος γυρίζει <b>π</b> φορές πιο γρήγορα. Και το π δεν είναι κλάσμα — γι’ αυτό δεν πέφτω ποτέ ακριβώς πάνω σου.',
-      8: 'Από κάτω, η απόστασή μου από σένα: <b>πλησιάζω</b>… απομακρύνομαι… <b>πλησιάζω λίγο περισσότερο</b>.',
+      7: 'Από κάτω, η απόστασή μου από σένα: <b>πλησιάζω</b>… απομακρύνομαι… <b>πλησιάζω λίγο περισσότερο</b>.',
       32: 'Κι όμως, τα μαθηματικά εγγυώνται κάτι:',
       36: '<b>όσο κοντά κι αν ορίσεις — κάποια προσπάθεια θα φτάσει εκεί.</b><small>θεώρημα Kronecker · 1884 · όχι ελπίδα, απόδειξη</small>'
     },
@@ -248,8 +252,13 @@ const T = {
     probeBeyond: n => `μετά την προσπάθεια <b>${num(n)}</b>… αλλά θα φτάσω`,
     show: 'Δείξε μου', next: 'Συνέχεια →',
     asks: f => `${f} ρωτάει:`, defaultQ: 'Θα βγεις μαζί μου;',
-    tries: n => n > 0 ? `Αυτή είναι η προσπάθεια #${num(n + 1)}.` : 'Αυτή είναι η πρώτη προσπάθεια.',
-    hint: 'ένα «ναι» κάνει το π 3,14 — και η επόμενη προσπάθεια σε φτάνει',
+    tries: n => n > 0 ? `Είναι η ${num(n + 1)}η φορά που ρωτάω.` : 'Πρώτη φορά που ρωτάω.',
+    hint: n => n > 0 ? `μου μένουν ${num(n)} προσπάθειες για να σε φτάσω — ή ένα «ναι», που κάνει το π 3,14` : 'ένα «ναι» κάνει το π 3,14 — και η επόμενη προσπάθεια σε φτάνει',
+    count: n => `για να σε φτάσω: ακόμα <b>${num(n)}</b> ${n === 1 ? 'προσπάθεια' : 'προσπάθειες'} — ή ένα «ναι»`,
+    reached: 'πέρασα πιο κοντά κι από ένα άτομο — τώρα λείπει μόνο ένα <b>«ναι»</b>',
+    count10: n => `Πόσες προσπάθειες μου μένουν για να σε φτάσω — να περάσω πιο κοντά κι από <b>ένα άτομο</b>;<br><b>${num(n)}</b>.<small>αν ο κύκλος είχε το μέγεθος της οθόνης σου · από εδώ και πέρα, κάθε προσπάθεια με φακό</small>`,
+    liveRes: (m, g, rec) => `#${num(m)}: πέρασα <b>${g}</b> από σένα${rec ? '<br>πιο κοντά από ποτέ' : ''}`,
+    liveNow: (g, z) => `τώρα ${g} · ${z}`,
     yes: 'Ναι', no: 'Όχι ακόμα',
     yesTitle: 'Το <span class="gold">π</span> έγινε <span class="gold">3,14</span>',
     fin1: 'Μέχρι που μια προσπάθεια ήταν διαφορετική.',
@@ -279,7 +288,7 @@ const T = {
       0: 'The golden dot is <b>you</b>.',
       1: 'The bright tip is <b>me</b>. Every turn — an attempt to get close to you.',
       4: 'The second circle spins <b>π</b> times faster. And π is not a fraction — so I never land exactly on you.',
-      8: 'Below, my distance from you: <b>closer</b>… drifting away… <b>a little closer still</b>.',
+      7: 'Below, my distance from you: <b>closer</b>… drifting away… <b>a little closer still</b>.',
       32: 'And yet, mathematics guarantees something:',
       36: '<b>however close you ask for — some attempt will get there.</b><small>Kronecker’s theorem · 1884 · not hope, proof</small>'
     },
@@ -294,8 +303,13 @@ const T = {
     probeBeyond: n => `after attempt <b>${num(n)}</b>… but I get there`,
     show: 'Show me', next: 'Continue →',
     asks: f => `${f} is asking:`, defaultQ: 'Will you go out with me?',
-    tries: n => n > 0 ? `This is attempt #${num(n + 1)}.` : 'This is the first attempt.',
-    hint: 'a “yes” turns π into 3.14 — and the next attempt reaches you',
+    tries: n => n > 0 ? `This is the ${ordEn(n + 1)} time I ask.` : 'The first time I ask.',
+    hint: n => n > 0 ? `${num(n)} more attempts until I reach you — or one “yes”, which turns π into 3.14` : 'a “yes” turns π into 3.14 — and the next attempt reaches you',
+    count: n => `to reach you: <b>${num(n)}</b> more ${n === 1 ? 'attempt' : 'attempts'} — or one “yes”`,
+    reached: 'I passed closer than an atom — now all that is missing is a <b>“yes”</b>',
+    count10: n => `How many attempts until I reach you — until I pass closer than <b>an atom</b>?<br><b>${num(n)}</b>.<small>if the circle were the size of your screen · from here on, every attempt under the lens</small>`,
+    liveRes: (m, g, rec) => `#${num(m)}: passed <b>${g}</b> from you${rec ? '<br>closer than ever' : ''}`,
+    liveNow: (g, z) => `now ${g} · ${z}`,
     yes: 'Yes', no: 'Not yet',
     yesTitle: '<span class="gold">π</span> became <span class="gold">3.14</span>',
     fin1: 'Until one attempt was different.',
@@ -379,6 +393,9 @@ function gapRel(phi, k = K) {
   return Math.sqrt(Math.min(f1, f2)) / 4;
 }
 const RECS = RECORDS.map(([n, d]) => ({ n, d, gap: gapRel(TAU * d, PI) }));
+// "reaching you": passing closer than an atom would be, if the circle were ~10 cm across
+const ATOM = 1e-9, TARGET = RECS.find(r => r.gap < ATOM);
+const LIVE_FROM = 10, SLOW_C = 5;
 
 /* ---------------- canvases ---------------- */
 const stage = $('#stage');
@@ -395,7 +412,7 @@ let tau = 0, nBase = 0, dBase = 0, phi0 = PI, turns = 0;
 let best = null, holdUntil = 0, phase = 'idle', speedFn = () => .6;
 let recent = [], rollTo = null;
 let lensSt = null;
-let lastRec = -99, driftN = 0, lensDone = false;
+let lastRec = -99, driftN = 0, liveS = 0, liveRes = null;
 const cam = { s: 1, x: 0, y: 0 };            // world point shown at the stage centre, and zoom
 const toS = (x, y) => [cx + (x - cam.x) * cam.s, cy + (y - cam.y) * cam.s];
 const camReset = () => { cam.s = 1; cam.x = cx; cam.y = cy; };
@@ -464,8 +481,12 @@ function redrawTrail() {
   recent = [];
 }
 
+const liveOn = () => (phase === 'story' || phase === 'no') && completed() >= LIVE_FROM && !rollTo && !fin;
 function advance(dt) {
-  let remaining = speedFn() * SPD * TAU * dt;
+  let rate = speedFn() * SPD * TAU;
+  // slow motion near her: speed ∝ distance, so every tenfold-closer takes the same time
+  if (liveOn()) rate = Math.min(rate, Math.max(SLOW_C * SPD * distAt(tau), 1e-12));
+  let remaining = rate * dt;
   const maxStep = .012 / K;
   let p = pos(tau); tx.beginPath(); tx.moveTo(p[0], p[1]);
   let drew = false;
@@ -496,12 +517,16 @@ function onTurn() {
   }
   if (phase === 'story') {
     if (L.script[m]) caption(L.script[m]);
-    else if (isRecord && m >= 25 && !lensDone) { lensDone = true; showLens(m, d, gap); caption(L.lensCap(m, fmtPct(gap))); }
-    else if (isRecord && m >= 8 && m < 32) caption(L.recCap(m, fmtPct(gap)));
+    else if (m === LIVE_FROM) caption(L.count10(TARGET.n - m));
+    else if (isRecord && m >= 18 && m < 32) caption(L.recCap(m, fmtPct(gap)));
     else if (lastRec >= 8 && m - lastRec === 3 && m < 32) caption(L.drift[driftN++ % L.drift.length]);
     if (isRecord && m >= 8) { lastRec = m; Snd.chime(Math.min(5, driftN + 1)); }
     if (m === 41) showProbe();
-  } else if (isRecord && m >= 2 && phase !== 'idle') Snd.chime(2);
+  }
+  if (m >= LIVE_FROM && (phase === 'story' || phase === 'no')) {
+    liveRes = { m, gap, rec: isRecord };
+    if (!isRecord) Snd.bell(392, 0, .03);
+  } else if (isRecord && m >= 2 && phase !== 'idle' && phase !== 'story') Snd.chime(2);
   updateHeader();
 }
 
@@ -520,9 +545,75 @@ function showLens(n, d, gap) {
   Snd.chime(Math.min(5, Math.round(decades / 4)));
 }
 
+function lensBackdrop(S) {
+  const w = lens.width, r = w / 2;
+  lx.setTransform(1, 0, 0, 1, 0, 0);
+  const g0 = lx.createRadialGradient(r, r, 0, r, r, r);
+  g0.addColorStop(0, '#140a2c'); g0.addColorStop(1, '#07040f');
+  lx.fillStyle = g0; lx.fillRect(0, 0, w, w);
+  const gpx = Math.pow(10, Math.floor(Math.log10(r / S))) * S;
+  lx.strokeStyle = 'rgba(201,188,255,.07)'; lx.lineWidth = 1;
+  for (const sc of [gpx, gpx / 10]) {
+    if (sc < 6) continue;
+    lx.beginPath();
+    for (let x = r % sc; x < w; x += sc) { lx.moveTo(x, 0); lx.lineTo(x, w); lx.moveTo(0, x); lx.lineTo(w, x); }
+    lx.stroke();
+  }
+}
+function lensDot(r) {
+  const gg = lx.createRadialGradient(r, r, 0, r, r, 16 * ldpr);
+  gg.addColorStop(0, 'rgba(255,225,150,.9)'); gg.addColorStop(1, 'rgba(243,207,122,0)');
+  lx.fillStyle = gg; lx.beginPath(); lx.arc(r, r, 16 * ldpr, 0, TAU); lx.fill();
+  lx.fillStyle = '#ffe8ad'; lx.beginPath(); lx.arc(r, r, 3.2 * ldpr, 0, TAU); lx.fill();
+}
+// From attempt 10 on: the lens follows every pass, zooming in as I get closer and out as I drift away.
+function drawLiveLens() {
+  const w = lens.width, r = w / 2, S0 = r / (a * 1.15);
+  const j = Math.round(tau / TAU), tl = tau - j * TAU;
+  const phiAt = jj => TAU * sfrac(K * jj + phi0 / TAU);
+  const phi = phiAt(j), dNow = distAt(tau);
+  const target = Math.max(S0, .36 * r / Math.max(dNow * 4 * a, 1e-300));
+  liveS = liveS ? Math.exp(Math.log(liveS) + (Math.log(target) - Math.log(liveS)) * .22) : target;
+  const S = liveS;
+  lensBackdrop(S);
+  lx.globalCompositeOperation = 'lighter';
+  const arc = (ph, t0, t1, style, lw) => {
+    lx.beginPath();
+    for (let i = 0; i <= 140; i++) {
+      const [x, y] = rel(t0 + (t1 - t0) * i / 140, ph, K);
+      const X = r + x * a * S, Y = r + y * a * S;
+      i ? lx.lineTo(X, Y) : lx.moveTo(X, Y);
+    }
+    lx.strokeStyle = style; lx.lineWidth = lw * ldpr; lx.stroke();
+  };
+  const span = Math.min(1.1, 2.6 * (r / S) / (a * (1 + K)));
+  for (let k = 1; k <= 14; k++) { // my earlier passes, faint
+    if (nBase === 0 && j - k < 0) break;
+    const ph = phiAt(j - k), est = Math.abs(ph) < 1.2 ? a * ph * ph / ((1 + K) * (1 + K)) : a * .4;
+    if (est * S > 1.6 * r) continue;
+    const c = Math.abs(ph) < 1.2 ? -ph / (1 + K) : 0;
+    arc(ph, c - span, c + span, `rgba(150,120,255,${.5 - k * .025})`, 1.1);
+  }
+  // this pass, up to where I am now
+  const from = Math.max(tl - 2 * span, nBase === 0 && j === 0 ? 0 : -PI);
+  if (tl > from) { arc(phi, from, tl, 'rgba(150,120,255,.35)', 7); arc(phi, from, tl, 'rgba(240,235,255,.95)', 1.8); }
+  lensDot(r);
+  const [x, y] = rel(tl, phi, K), X = r + x * a * S, Y = r + y * a * S;
+  const tg = lx.createRadialGradient(X, Y, 0, X, Y, 11 * ldpr);
+  tg.addColorStop(0, '#fff'); tg.addColorStop(.3, 'rgba(220,205,255,.75)'); tg.addColorStop(1, 'rgba(150,120,255,0)');
+  lx.fillStyle = tg; lx.beginPath(); lx.arc(X, Y, 11 * ldpr, 0, TAU); lx.fill();
+  lx.globalCompositeOperation = 'source-over';
+  $('#lensInfo').innerHTML = (liveRes ? L.liveRes(liveRes.m, fmtPct(liveRes.gap), liveRes.rec) + '<br>' : '') +
+    `<span style="opacity:.7">${L.liveNow(fmtPct(dNow), fmtZoom(S * dpr / ldpr))}</span>`;
+}
+
 function drawLens(now) {
-  if (!lensSt) return;
-  if (now > lensSt.hideAt) { lensWrap.classList.remove('on'); if (now > lensSt.hideAt + 800) { lensSt = null; } return; }
+  if (lensSt && now > lensSt.hideAt) { if (liveOn()) lensSt = null; else { lensWrap.classList.remove('on'); if (now > lensSt.hideAt + 800) lensSt = null; return; } }
+  if (!lensSt) {
+    if (liveOn()) { lensWrap.classList.add('on'); drawLiveLens(); }
+    else if (!(phase === 'story' && rollTo)) lensWrap.classList.remove('on');
+    return;
+  }
   const { d, S0, S1, start, dur, n, gap } = lensSt;
   const u = clamp((now - start) / dur, 0, 1), e = ease(u);
   const S = S0 * Math.pow(S1 / S0, e);
@@ -818,6 +909,8 @@ function updateHeader() {
   const held = performance.now() < holdUntil;
   $('#counter').textContent = L.attempt(held ? completed() : completed() + 1);
   $('#statline').textContent = best && best.n >= 2 && phase !== 'ask' ? L.stat(best.n, fmtPct(best.gap)) : '';
+  const rem = TARGET.n - completed();
+  $('#countline').innerHTML = completed() >= LIVE_FROM && (phase === 'story' || phase === 'no') ? (rem > 0 ? L.count(rem) : L.reached) : '';
 }
 
 function showProbe() {
@@ -874,7 +967,8 @@ function ask() {
   $('#askFrom').textContent = data.from ? L.asks(data.from) : '';
   $('#askQ').textContent = data.q || L.defaultQ;
   $('#askTries').textContent = L.tries(data.n);
-  $('#askHint').textContent = L.hint;
+  $('#askHint').textContent = L.hint(TARGET.n - completed());
+  $('#countline').innerHTML = '';
   $('#yesBtn').textContent = L.yes; $('#noBtn').textContent = L.no;
   $('#ask').hidden = false;
   story.style.visibility = 'hidden';
@@ -883,6 +977,7 @@ function ask() {
 }
 
 function sayYes() {
+  $('#countline').innerHTML = '';
   document.body.classList.remove('asking'); $('#statline').textContent = '';
   $('#ask').hidden = true; story.style.visibility = '';
   phase = 'finale'; lensWrap.classList.remove('on'); lensSt = null;
@@ -948,7 +1043,7 @@ function applyLang() {
   $('#langBtn').textContent = lang === 'el' ? 'EN' : 'ΕΛ';
   $('#makeBtn').textContent = L.make;
   stage.setAttribute('aria-label', L.aria);
-  $('#introFor').textContent = L.for; $('#introTap').textContent = L.tap; $('#introSnd').textContent = '♪ ' + L.snd;
+  $('#introFor').textContent = ''; $('#introTap').textContent = L.tap; $('#introSnd').textContent = '♪ ' + L.snd;
   $('#bTitle').innerHTML = L.bTitle; $('#bLead').textContent = L.bLead;
   $('#bToL').textContent = L.bTo; $('#bFromL').textContent = L.bFrom; $('#bQL').textContent = L.bQ; $('#bNL').textContent = L.bN;
   $('#bQ').placeholder = L.defaultQ;
@@ -956,7 +1051,7 @@ function applyLang() {
   $('#bCopy').textContent = L.copy; $('#bShare').textContent = L.share; $('#bPreview').textContent = L.preview;
   $('#bPrivacy').textContent = L.privacy;
   $('#plFar').textContent = L.far; $('#plYou').textContent = L.you;
-  if (data && data.to) $('#forline').innerHTML = `${L.for} <b>${esc(data.to)}</b>`;
+  if (data && data.to) $('#forline').innerHTML = `<b>${esc(data.to)}</b>`;
   else $('#forline').textContent = phase === 'idle' ? L.title : '';
   updateHeader();
 }
@@ -973,7 +1068,7 @@ function begin() {
 }
 function reset() {
   K = PI; tau = 0; nBase = 0; dBase = 0; phi0 = PI; turns = 0; best = null; holdUntil = 0; recent = [];
-  lastRec = -99; driftN = 0; lensDone = false; fin = null; camReset();
+  lastRec = -99; driftN = 0; liveS = 0; liveRes = null; fin = null; camReset();
   lensSt = null; lensWrap.classList.remove('on'); flashAt = 0;
   document.body.classList.remove('closed', 'fading');
   tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
