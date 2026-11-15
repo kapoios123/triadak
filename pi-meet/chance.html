@@ -836,9 +836,17 @@ function openBuilder() {
   $('#builder').hidden = false; $('#intro').hidden = true; $('#ask').hidden = true;
   if (phase !== 'story') { phase = 'idle'; speedFn = () => .6; }
 }
+/* Where the page lives on the web. Used when it is opened from a file, an app preview or about:blank,
+   so the link you send always points to a real page. Change it if you host the page on your own site. */
+const PUBLIC_URL = 'https://raw.githack.com/kapoios123/triadak/ccr-e80192b0-48yac7/pi-meet/chance.html';
+const pageBase = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : PUBLIC_URL;
 function buildLink() {
   const o = { to: $('#bTo').value.trim(), from: $('#bFrom').value.trim(), q: $('#bQ').value.trim(), n: parseInt($('#bN').value) || 0, l: lang };
-  return location.href.split('#')[0] + '#d=' + encode(o);
+  return pageBase() + '#d=' + encode(o);
+}
+function go(url) {
+  if (url.split('#')[0] === location.href.split('#')[0]) { location.href = url; return; }
+  const w = window.open(url, '_blank', 'noopener'); if (!w) location.href = url;
 }
 
 function applyLang() {
@@ -888,8 +896,8 @@ $('#noBtn').onclick = sayNo;
 $('#bMake').onclick = () => { const u = buildLink(); $('#bLink').textContent = u; $('#linkOut').hidden = false; };
 $('#bCopy').onclick = () => copy($('#bLink').textContent);
 $('#bShare').onclick = () => { const u = $('#bLink').textContent; navigator.share ? navigator.share({ url: u }).catch(() => {}) : copy(u); };
-$('#bPreview').onclick = () => { location.href = $('#bLink').textContent; };
-$('#bDemo').onclick = () => { location.href = location.href.split('#')[0] + '#d=' + encode({ to: '', from: '', q: '', n: 3, l: lang }); };
+$('#bPreview').onclick = () => go($('#bLink').textContent);
+$('#bDemo').onclick = () => go(pageBase() + '#d=' + encode({ to: '', from: '', q: '', n: 3, l: lang }));
 addEventListener('hashchange', () => location.reload());
 addEventListener('resize', () => { clearTimeout(layout.tm); layout.tm = setTimeout(layout, 80); });
 let paused = false;
