@@ -49,6 +49,13 @@
     text-shadow:0 1px 6px #000}
   #lensInfo b{color:var(--gold);font-weight:600}
 
+  #pulseWrap{position:relative;z-index:2;height:clamp(58px,9vh,84px);margin:2px 14px 0;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 100%);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 100%)}
+  #pulse{position:absolute;inset:0;width:100%;height:100%}
+  .pl{position:absolute;right:2px;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+  .pl.far{top:-2px;color:var(--muted);opacity:.7}
+  .pl.you{bottom:-3px;color:var(--gold);text-shadow:0 0 10px rgba(243,207,122,.7)}
+  .asking #pulseWrap{opacity:.35}
   #story{position:relative;z-index:3;text-align:center;padding:4px 18px 4px;min-height:104px;display:flex;flex-direction:column;
     align-items:center;justify-content:center;font-style:italic;color:var(--text);font-size:clamp(18px,3.6vw,23px);line-height:1.32}
   #story b{color:var(--gold);font-weight:500}
@@ -134,6 +141,12 @@
   <div id="lensWrap" aria-hidden="true"><canvas id="lens"></canvas><div id="lensInfo"></div></div>
 </div>
 
+<div id="pulseWrap" aria-hidden="true">
+  <canvas id="pulse"></canvas>
+  <span class="pl far" id="plFar"></span>
+  <span class="pl you" id="plYou"></span>
+</div>
+
 <div id="story" aria-live="polite"></div>
 
 <footer>
@@ -210,6 +223,7 @@ const RECORDS = [[1,-0.3584073464102068],[2,-0.21681469282041352],[3,-0.07522203
 const T = {
   el: {
     title: 'Πάντα υπάρχει μια πιθανότητα',
+    far: 'μακριά', you: 'εσύ',
     attempt: n => `προσπάθεια ${num(n)}`,
     stat: (n, g) => `πιο κοντά μέχρι τώρα · #${num(n)} · ${g} από σένα`,
     ord: n => `${num(n)}η`,
@@ -219,6 +233,7 @@ const T = {
       0: 'Η χρυσή κουκκίδα είσαι <b>εσύ</b>.',
       1: 'Η φωτεινή άκρη είμαι <b>εγώ</b>. Κάθε γύρος — μια προσπάθεια να έρθω κοντά σου.',
       4: 'Ο δεύτερος κύκλος γυρίζει <b>π</b> φορές πιο γρήγορα. Και το π δεν είναι κλάσμα — γι’ αυτό δεν πέφτω ποτέ ακριβώς πάνω σου.',
+      8: 'Από κάτω, η απόστασή μου από σένα: <b>πλησιάζω</b>… απομακρύνομαι… <b>πλησιάζω λίγο περισσότερο</b>.',
       32: 'Κι όμως, τα μαθηματικά εγγυώνται κάτι:',
       36: '<b>όσο κοντά κι αν ορίσεις — κάποια προσπάθεια θα φτάσει εκεί.</b><small>θεώρημα Kronecker · 1884 · όχι ελπίδα, απόδειξη</small>'
     },
@@ -255,6 +270,7 @@ const T = {
   },
   en: {
     title: 'There is always a chance',
+    far: 'far', you: 'you',
     attempt: n => `attempt ${num(n)}`,
     stat: (n, g) => `closest so far · #${num(n)} · ${g} from you`,
     for: 'for',
@@ -263,6 +279,7 @@ const T = {
       0: 'The golden dot is <b>you</b>.',
       1: 'The bright tip is <b>me</b>. Every turn — an attempt to get close to you.',
       4: 'The second circle spins <b>π</b> times faster. And π is not a fraction — so I never land exactly on you.',
+      8: 'Below, my distance from you: <b>closer</b>… drifting away… <b>a little closer still</b>.',
       32: 'And yet, mathematics guarantees something:',
       36: '<b>however close you ask for — some attempt will get there.</b><small>Kronecker’s theorem · 1884 · not hope, proof</small>'
     },
@@ -370,6 +387,7 @@ const trail = $('#trail'), tx = trail.getContext('2d');
 const bloom = $('#bloom'), bx = bloom.getContext('2d');
 const arms = $('#arms'), ax = arms.getContext('2d');
 const lensWrap = $('#lensWrap'), lens = $('#lens'), lx = lens.getContext('2d');
+const pulse = $('#pulse'), px_ = pulse.getContext('2d');
 let W = 1, H = 1, dpr = 1, cx = 0, cy = 0, R = 0, a = 0, ldpr = 1;
 
 /* ---------------- simulation state ---------------- */
@@ -406,6 +424,8 @@ function layout() {
   lensWrap.style.setProperty('--ls', ls + 'px');
   ldpr = Math.min(window.devicePixelRatio || 1, 2);
   lens.width = lens.height = Math.round(ls * ldpr);
+  const pr = pulse.getBoundingClientRect();
+  pulse.width = Math.max(1, Math.round(pr.width * ldpr)); pulse.height = Math.max(1, Math.round(pr.height * ldpr));
   drawBackground();
   if (!fin) camReset();
   if (phase === 'closed') drawClosed(); else if (!fin) redrawTrail();
@@ -550,6 +570,71 @@ function drawLens(now) {
   $('#lensInfo').innerHTML = L.lensInfo(n, fmtPct(gap), fmtZoom(S * dpr / ldpr));
 }
 
+/* ---------------- distance from her, live ---------------- */
+// |tip − golden dot| / diameter at path time t, precise even when tiny
+function distAt(t) {
+  const j = Math.round(t / TAU), tl = t - j * TAU;
+  const [x, y] = rel(tl, TAU * sfrac(K * j + phi0 / TAU), K);
+  return Math.hypot(x, y) / 4;
+}
+const LOG_BOTTOM = -6.2;  // where "you" is drawn on the graph
+function drawPulse(now) {
+  const w = pulse.width, h = pulse.height; if (w < 2) return;
+  const c = px_; c.clearRect(0, 0, w, h);
+  const top = 8 * ldpr, bot = h - 7 * ldpr;
+  // √log scale: room for the everyday ups and downs, and still a long way down to "you"
+  const Y = d => top + (bot - top) * Math.sqrt(clamp(Math.log10(Math.max(d, 1e-12)) / LOG_BOTTOM, 0, 1));
+  const span = 12 * TAU, t1 = tau, t0 = t1 - span;
+  const X = t => w * (1 - (t1 - t) / span);
+  const minT = nBase > 0 || fin ? -Infinity : 0;
+
+  // "you": the line at the bottom that every dive reaches for
+  let g = c.createLinearGradient(0, 0, w, 0);
+  g.addColorStop(0, 'rgba(243,207,122,0)'); g.addColorStop(.3, 'rgba(243,207,122,.55)'); g.addColorStop(1, 'rgba(243,207,122,.9)');
+  c.strokeStyle = g; c.lineWidth = 1.2 * ldpr; c.beginPath(); c.moveTo(0, bot); c.lineTo(w, bot); c.stroke();
+
+  // best so far: a golden step that only ever goes down
+  if (best && best.n >= 2 && !fin && phase !== 'closed') {
+    const yb = Y(best.gap);
+    c.setLineDash([3 * ldpr, 5 * ldpr]); c.strokeStyle = 'rgba(243,207,122,.45)'; c.lineWidth = 1 * ldpr;
+    c.beginPath(); c.moveTo(0, yb); c.lineTo(w, yb); c.stroke(); c.setLineDash([]);
+  }
+
+  // the trace: samples along the path + the exact closest point of every pass near her
+  const pts = [], STEP = TAU / 90;
+  for (let t = Math.max(t0, minT); t <= t1; t += STEP) pts.push([t, distAt(t)]);
+  const minima = [];
+  for (let j = Math.ceil(Math.max(t0, minT) / TAU - .5); j <= Math.floor(t1 / TAU + .5); j++) {
+    const phi = TAU * sfrac(K * j + phi0 / TAU);
+    if (Math.abs(phi) > .5) continue;
+    const tm = j * TAU - phi / (1 + K);
+    if (tm < Math.max(t0, minT) || tm > t1) continue;
+    const gm = phi === 0 ? 0 : gapRel(phi, K);
+    pts.push([tm, gm]); minima.push([tm, gm, j]);
+  }
+  pts.push([t1, distAt(t1)]);
+  pts.sort((p, q) => p[0] - q[0]);
+  if (pts.length < 2) return;
+  c.lineJoin = 'round';
+  c.beginPath();
+  pts.forEach(([t, d], i) => { const x = X(t), y = Y(d); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  c.save(); c.shadowColor = 'rgba(160,130,255,.9)'; c.shadowBlur = 8 * ldpr;
+  c.strokeStyle = 'rgba(190,170,255,.9)'; c.lineWidth = 1.4 * ldpr; c.stroke(); c.restore();
+
+  // golden sparks where I came closest
+  for (const [t, d] of minima) {
+    if (d > .02) continue;
+    const x = X(t), y = Y(d), touch = d < 1e-12;
+    const r = (touch ? 16 : 7) * ldpr;
+    g = c.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(255,225,150,.95)'); g.addColorStop(1, 'rgba(243,207,122,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+  }
+  // the head of the trace
+  const hx = X(t1), hy = Y(distAt(t1));
+  c.fillStyle = '#fff'; c.beginPath(); c.arc(hx - 1.5 * ldpr, hy, 2.4 * ldpr, 0, TAU); c.fill();
+}
+
 /* ---------------- arms, glow, golden dot ---------------- */
 let flashAt = 0;
 function drawArms(now) {
@@ -564,11 +649,18 @@ function drawArms(now) {
   ax.fillStyle = g; ax.fillRect(ccx - cr, ccy - cr, cr * 2, cr * 2);
 
   // the golden dot: beats faster as I get close in the finale
+  // …and lights up whenever I come close
   const near = fin ? clamp(1 - Math.abs(25 * TAU - tau) / (.85 * TAU), 0, 1) : 0;
-  const [mx, my] = toS(cx + 2 * a, cy), pulse = .5 + .5 * Math.sin(now / (520 - 330 * near));
-  const gr = 16 * dpr * zs * (1 + .5 * near);
+  const close = clamp((-Math.log10(Math.max(distAt(tau), 1e-12)) - .55) / 2.2, 0, 1);
+  const [mx, my] = toS(cx + 2 * a, cy), beat = .5 + .5 * Math.sin(now / (520 - 330 * near));
+  const [tpx, tpy] = toS(...pos(tau));
+  if (phase !== 'closed') { // the thread between us
+    ax.strokeStyle = `rgba(243,207,122,${.05 + .45 * close})`; ax.lineWidth = (.6 + .8 * close) * dpr;
+    ax.setLineDash([2 * dpr, 5 * dpr]); ax.beginPath(); ax.moveTo(tpx, tpy); ax.lineTo(mx, my); ax.stroke(); ax.setLineDash([]);
+  }
+  const gr = 16 * dpr * zs * (1 + .5 * near + 1.3 * close);
   g = ax.createRadialGradient(mx, my, 0, mx, my, gr);
-  g.addColorStop(0, `rgba(255,225,150,${.55 + .35 * pulse})`); g.addColorStop(1, 'rgba(243,207,122,0)');
+  g.addColorStop(0, `rgba(255,225,150,${Math.min(1, .5 + .3 * beat + .3 * close)})`); g.addColorStop(1, 'rgba(243,207,122,0)');
   ax.fillStyle = g; ax.beginPath(); ax.arc(mx, my, gr, 0, TAU); ax.fill();
   ax.fillStyle = '#ffe8ad'; ax.beginPath(); ax.arc(mx, my, 2.2 * dpr * Math.min(zs, 2.2), 0, TAU); ax.fill();
 
@@ -863,6 +955,7 @@ function applyLang() {
   $('#bMake').textContent = L.bMake; $('#bDemo').textContent = L.bDemo; $('#bReady').textContent = L.bReady;
   $('#bCopy').textContent = L.copy; $('#bShare').textContent = L.share; $('#bPreview').textContent = L.preview;
   $('#bPrivacy').textContent = L.privacy;
+  $('#plFar').textContent = L.far; $('#plYou').textContent = L.you;
   if (data && data.to) $('#forline').innerHTML = `${L.for} <b>${esc(data.to)}</b>`;
   else $('#forline').textContent = phase === 'idle' ? L.title : '';
   updateHeader();
@@ -912,6 +1005,7 @@ function frame(now) {
     if (now - (frame.h || 0) > 250) { frame.h = now; updateHeader(); }
   }
   drawArms(now);
+  drawPulse(now);
   drawLens(now);
   bx.clearRect(0, 0, bloom.width, bloom.height);
   bx.drawImage(trail, 0, 0, bloom.width, bloom.height);
