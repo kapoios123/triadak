@@ -200,86 +200,102 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const sfrac = x => x - Math.round(x);
 const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
 
-/* Attempts n where n·π comes closer to a whole number than ever before
-   (denominators of π's continued fraction), with the signed remainder δ = n·π − round(n·π),
-   computed with 100-digit precision. These are the turns where the path passes closest to the start. */
-const RECORDS = [[1,0.14159265358979323],[7,-0.008851424871447331],[106,0.008821280518083277],[113,-3.014435336405372e-05],[33102,1.912933577959042e-05],[33215,-1.10150175844633e-05],[66317,8.114318195127121e-06],[99532,-2.9006993893361787e-06],[265381,2.3129194164547636e-06],[364913,-5.877799728814151e-07],[1360120,5.495794978105185e-07],[1725033,-3.820047507089661e-08],[25510582,1.477284681796591e-08],[52746197,-8.654781434964792e-09],[78256779,6.1180653830011166e-09],[131002976,-2.5367160519636766e-09],[340262731,1.0446332790737633e-09],[811528438,-4.474494938161497e-10],[1963319607,1.4973429144146398e-10],[4738167652,-1.4798091093322177e-10],[6701487259,1.7533805082422143e-12],[567663097408,-6.969482408757582e-13]];
+/* The path starts at the centre (arm 2 half a turn behind), so attempt n ends with arm 2 at phase n·π + ½.
+   These are the attempts that come closer to the golden dot than any before them
+   (exhaustive search up to 2·10⁹ attempts, then δ = n·π + ½ − round(…) at 100-digit precision).
+   Notice 4, 11, 18, 25, 32, 39, 46, 53: every 7 turns a little closer, drifting away in between. */
+const RECORDS = [[1,-0.3584073464102068],[2,-0.21681469282041352],[3,-0.07522203923062029],[4,0.06637061435917295],[11,0.05751918948772562],[18,0.048667764616278295],[25,0.03981633974483096],[32,0.030964914873383632],[39,0.0221134900019363],[46,0.013262065130488969],[53,0.004410640259041638],[166,0.004380495905677585],[279,0.004350351552313531],[392,0.004320207198949477],[505,0.004290062845585424],[618,0.00425991849222137],[731,0.004229774138857316],[844,0.004199629785493262],[957,0.004169485432129209],[1070,0.004139341078765155],[1183,0.004109196725401101],[1296,0.0040790523720370475],[1409,0.004048908018672994],[1522,0.00401876366530894],[1635,0.003988619311944886],[1748,0.003958474958580833],[1861,0.003928330605216779],[1974,0.0038981862518527254],[2087,0.0038680418984886715],[2200,0.003837897545124618],[2313,0.003807753191760564],[2426,0.00377760883839651],[2539,0.0037474644850324567],[2652,0.003717320131668403],[2765,0.0036871757783043494],[2878,0.0036570314249402954],[2991,0.003626887071576242],[3104,0.003596742718212188],[3217,0.003566598364848134],[3330,0.0035364540114840807],[3443,0.0035063096581200268],[3556,0.0034761653047559733],[3669,0.0034460209513919194],[3782,0.003415876598027866],[3895,0.003385732244663812],[4008,0.003355587891299758],[4121,0.0033254435379357046],[4234,0.0032952991845716507],[4347,0.0032651548312075973],[4460,0.0032350104778435433],[4573,0.00320486612447949],[4686,0.003174721771115436],[4799,0.003144577417751382],[4912,0.0031144330643873286],[5025,0.0030842887110232747],[5138,0.003054144357659221],[5251,0.0030240000042951673],[5364,0.002993855650931114],[5477,0.00296371129756706],[5590,0.002933566944203006],[5703,0.0029034225908389525],[5816,0.0028732782374748986],[5929,0.002843133884110845],[6042,0.0028129895307467912],[6155,0.0027828451773827378],[6268,0.002752700824018684],[6381,0.00272255647065463],[6494,0.0026924121172905765],[6607,0.0026622677639265226],[6720,0.002632123410562469],[6833,0.002601979057198415],[6946,0.0025718347038343617],[7059,0.002541690350470308],[7172,0.002511545997106254],[7285,0.0024814016437422004],[7398,0.0024512572903781465],[7511,0.002421112937014093],[7624,0.002390968583650039],[7737,0.0023608242302859857],[7850,0.0023306798769219318],[7963,0.002300535523557878],[8076,0.0022703911701938244],[8189,0.0022402468168297705],[8302,0.002210102463465717],[8415,0.002179958110101663],[8528,0.0021498137567376096],[8641,0.0021196694033735557],[8754,0.002089525050009502],[8867,0.0020593806966454483],[8980,0.0020292363432813944],[9093,0.001999091989917341],[9206,0.001968947636553287],[9319,0.0019388032831892334],[9432,0.0019086589298251797],[9545,0.001878514576461126],[9658,0.0018483702230970723],[9771,0.0018182258697330184],[9884,0.0017880815163689647],[9997,0.001757937163004911],[10110,0.0017277928096408573],[10223,0.0016976484562768036],[10336,0.00166750410291275],[10449,0.0016373597495486962],[10562,0.0016072153961846425],[10675,0.0015770710428205886],[10788,0.001546926689456535],[10901,0.0015167823360924813],[11014,0.0014866379827284276],[11127,0.0014564936293643739],[11240,0.0014263492760003202],[11353,0.0013962049226362665],[11466,0.0013660605692722126],[11579,0.001335916215908159],[11692,0.0013057718625441052],[11805,0.0012756275091800515],[11918,0.0012454831558159978],[12031,0.0012153388024519441],[12144,0.0011851944490878904],[12257,0.0011550500957238365],[12370,0.0011249057423597828],[12483,0.0010947613889957292],[12596,0.0010646170356316755],[12709,0.0010344726822676218],[12822,0.001004328328903568],[12935,0.0009741839755395143],[13048,0.0009440396221754606],[13161,0.0009138952688114068],[13274,0.0008837509154473531],[13387,0.0008536065620832994],[13500,0.0008234622087192457],[13613,0.0007933178553551919],[13726,0.0007631735019911382],[13839,0.0007330291486270845],[13952,0.0007028847952630307],[14065,0.0006727404418989771],[14178,0.0006425960885349234],[14291,0.0006124517351708697],[14404,0.0005823073818068159],[14517,0.0005521630284427622],[14630,0.0005220186750787085],[14743,0.0004918743217146547],[14856,0.000461729968350601],[14969,0.0004315856149865473],[15082,0.0004014412616224936],[15195,0.0003712969082584399],[15308,0.00034115255489438614],[15421,0.00031100820153033245],[15534,0.0002808638481662787],[15647,0.00025071949480222496],[15760,0.00022057514143817127],[15873,0.00019043078807411755],[15986,0.0001602864347100638],[16099,0.0001301420813460101],[16212,9.999772798195637e-05],[16325,6.985337461790265e-05],[16438,3.970902125384893e-05],[16551,9.56466788979521e-06],[49766,-1.4503496946680894e-06],[315147,8.625697217866743e-07],[680060,2.7478974890525924e-07],[2405093,2.3658927383436262e-07],[4130126,1.98388798763466e-07],[5855159,1.601883236925694e-07],[7580192,1.219878486216728e-07],[9305225,8.378737355077618e-08],[11030258,4.5586898479879565e-08],[12755291,7.386423408982955e-09],[65501488,-1.2683580259818383e-09],[405764219,-2.2372474690807486e-10]];
 
 /* ---------------- text ---------------- */
 const T = {
   el: {
     title: 'Πάντα υπάρχει μια πιθανότητα',
     attempt: n => `προσπάθεια ${num(n)}`,
-    stat: (n, g) => `πιο κοντά μέχρι τώρα · #${num(n)} · ${g} μακριά`,
+    stat: (n, g) => `πιο κοντά μέχρι τώρα · #${num(n)} · ${g} από σένα`,
+    ord: n => `${num(n)}η`,
     for: 'για',
     tap: 'άγγιξε για να ξεκινήσει', snd: 'καλύτερα με ήχο',
     script: {
-      0: 'Δύο κύκλοι. Ο δεύτερος γυρίζει <b>π</b> φορές πιο γρήγορα από τον πρώτο.',
-      2: 'Κάθε γύρος είναι μια <b>προσπάθεια</b> να ξαναβρεθούν εκεί που ξεκίνησαν — στη χρυσή κουκκίδα.',
-      4: 'Το π όμως δεν γράφεται ως κλάσμα. Ο κύκλος <b>δεν κλείνει ποτέ</b> ακριβώς.',
-      10: 'Κι όμως, τα μαθηματικά εγγυώνται κάτι:',
-      12: '<b>όσο κοντά κι αν ορίσεις — κάποια προσπάθεια θα φτάσει εκεί.</b><small>θεώρημα Dirichlet · 1842 · όχι ελπίδα, απόδειξη</small>'
+      0: 'Η χρυσή κουκκίδα είσαι <b>εσύ</b>.',
+      1: 'Η φωτεινή άκρη είμαι <b>εγώ</b>. Κάθε γύρος — μια προσπάθεια να έρθω κοντά σου.',
+      4: 'Ο δεύτερος κύκλος γυρίζει <b>π</b> φορές πιο γρήγορα. Και το π δεν είναι κλάσμα — γι’ αυτό δεν πέφτω ποτέ ακριβώς πάνω σου.',
+      32: 'Κι όμως, τα μαθηματικά εγγυώνται κάτι:',
+      36: '<b>όσο κοντά κι αν ορίσεις — κάποια προσπάθεια θα φτάσει εκεί.</b><small>θεώρημα Kronecker · 1884 · όχι ελπίδα, απόδειξη</small>'
     },
-    lensCap: (n, g) => `Η προσπάθεια ${num(n)} πέρασε <b>${g}</b> μακριά.<small>τόσο κοντά, που χρειάζεται φακός για να φανεί</small>`,
+    recCap: (n, g) => `Η ${num(n)}η προσπάθεια πέρασε <b>${g}</b> από σένα.<small>πιο κοντά από ποτέ</small>`,
+    drift: ['…και μετά κάτι κάνω, και απομακρύνομαι πάλι.',
+            '…και πάλι λέω κάτι λάθος, και ξαναφεύγω μακριά. Αλλά ξαναγυρίζω.',
+            'Κάθε φορά λίγο πιο κοντά. Και κάθε φορά, κάτι με πετάει πάλι μακριά.'],
+    lensCap: (n, g) => `Η ${num(n)}η προσπάθεια πέρασε <b>${g}</b> από σένα.<small>τόσο κοντά, που χρειάζεται φακός για να φανεί</small>`,
     lensInfo: (n, g, z) => `προσπάθεια <b>#${num(n)}</b><br>${g} · μεγέθυνση ${z}`,
     probeQ: 'Διάλεξε εσύ: πόσο κοντά;',
-    probeAns: n => `θα φτάσει εκεί στην προσπάθεια <b>${num(n)}</b>`,
-    probeBeyond: n => `μετά την προσπάθεια <b>${num(n)}</b>… αλλά θα φτάσει`,
+    probeAns: n => `θα φτάσω εκεί στην προσπάθεια <b>${num(n)}</b>`,
+    probeBeyond: n => `μετά την προσπάθεια <b>${num(n)}</b>… αλλά θα φτάσω`,
     show: 'Δείξε μου', next: 'Συνέχεια →',
     asks: f => `${f} ρωτάει:`, defaultQ: 'Θα βγεις μαζί μου;',
     tries: n => n > 0 ? `Αυτή είναι η προσπάθεια #${num(n + 1)}.` : 'Αυτή είναι η πρώτη προσπάθεια.',
-    hint: 'ένα «ναι» κάνει το π 3,14 — και ο κύκλος κλείνει',
+    hint: 'ένα «ναι» κάνει το π 3,14 — και η επόμενη προσπάθεια σε φτάνει',
     yes: 'Ναι', no: 'Όχι ακόμα',
     yesTitle: 'Το <span class="gold">π</span> έγινε <span class="gold">3,14</span>',
-    yesBig: 'Συναντηθήκαμε.', yesSub: n => `μετά από ${num(n)} ${n === 1 ? 'προσπάθεια' : 'προσπάθειες'}, ο κύκλος έκλεισε`,
-    noBig: 'Εντάξει.', noSub: 'Ο κύκλος συνεχίζει ήσυχα, χωρίς βιασύνη.<small>κάθε προσπάθεια περνά λίγο πιο κοντά</small>',
+    fin1: 'Μέχρι που μια προσπάθεια ήταν διαφορετική.',
+    fin2: 'πιο αργά… πιο κοντά…',
+    yesBig: 'Αυτή ήταν η στιγμή.',
+    yesSub: n => n > 1 ? `μετά από ${num(n)} προσπάθειες, σε έφτασα` : 'με την πρώτη προσπάθεια, σε έφτασα',
+    noBig: 'Εντάξει.', noSub: 'Συνεχίζω να γυρίζω, ήσυχα, χωρίς βιασύνη.<small>κάθε προσπάθεια περνά λίγο πιο κοντά</small>',
     reply: 'Στείλε την απάντηση', changed: 'άλλαξα γνώμη',
     replyYes: 'Ναι. Το π έγινε 3,14. 💜', replyNo: 'Όχι ακόμα.',
     make: '✎ φτιάξε το δικό σου',
     bTitle: 'Πάντα υπάρχει <span>μια πιθανότητα</span>',
-    bLead: 'Φτιάξε έναν σύνδεσμο. Θα δει το π να προσπαθεί ξανά και ξανά, όλο και πιο κοντά — και στο τέλος την ερώτησή σου.',
-    bTo: 'Για (όνομα)', bFrom: 'Από (το δικό σου)', bQ: 'Η ερώτηση', bN: 'Πόσες φορές έχεις ήδη ρωτήσει;',
+    bLead: 'Φτιάξε έναν σύνδεσμο. Η χρυσή κουκκίδα θα είναι το άτομο που τον ανοίγει· η φωτεινή άκρη, εσύ — να προσπαθείς ξανά και ξανά, όλο και πιο κοντά. Στο τέλος, η ερώτησή σου.',
+    bTo: 'Για (όνομα)', bFrom: 'Από (το δικό σου)', bQ: 'Η ερώτηση', bN: 'Πόσες φορές έχεις ήδη προσπαθήσει;',
     bMake: 'Φτιάξε τον σύνδεσμο', bDemo: 'δες ένα παράδειγμα',
     bReady: 'Έτοιμο. Στείλ’ το:', copy: 'Αντιγραφή', share: 'Κοινοποίηση', preview: 'Προεπισκόπηση',
     copied: 'Αντιγράφηκε', privacy: 'Τίποτα δεν αποθηκεύεται πουθενά — τα ονόματα και η ερώτηση ζουν μόνο μέσα στον σύνδεσμο.',
-    aria: 'Δύο περιστρεφόμενοι βραχίονες ζωγραφίζουν ένα φωτεινό λουλούδι που δεν κλείνει ποτέ'
+    aria: 'Μια φωτεινή άκρη ζωγραφίζει ένα λουλούδι, περνώντας όλο και πιο κοντά από μια χρυσή κουκκίδα'
   },
   en: {
     title: 'There is always a chance',
     attempt: n => `attempt ${num(n)}`,
-    stat: (n, g) => `closest so far · #${num(n)} · ${g} away`,
+    stat: (n, g) => `closest so far · #${num(n)} · ${g} from you`,
     for: 'for',
     tap: 'tap to begin', snd: 'best with sound on',
     script: {
-      0: 'Two circles. The second spins <b>π</b> times faster than the first.',
-      2: 'Every turn is an <b>attempt</b> to get back to where they started — the golden dot.',
-      4: 'But π is not a fraction. The circle <b>never closes</b> exactly.',
-      10: 'And yet, mathematics guarantees something:',
-      12: '<b>however close you ask for — some attempt will get there.</b><small>Dirichlet’s theorem · 1842 · not hope, proof</small>'
+      0: 'The golden dot is <b>you</b>.',
+      1: 'The bright tip is <b>me</b>. Every turn — an attempt to get close to you.',
+      4: 'The second circle spins <b>π</b> times faster. And π is not a fraction — so I never land exactly on you.',
+      32: 'And yet, mathematics guarantees something:',
+      36: '<b>however close you ask for — some attempt will get there.</b><small>Kronecker’s theorem · 1884 · not hope, proof</small>'
     },
-    lensCap: (n, g) => `Attempt ${num(n)} passed <b>${g}</b> away.<small>so close you need a lens to see it</small>`,
+    recCap: (n, g) => `My ${ordEn(n)} attempt passed <b>${g}</b> from you.<small>closer than ever</small>`,
+    drift: ['…and then I do something, and drift away again.',
+            '…and again I say the wrong thing and drift off. But I come back.',
+            'A little closer every time. And every time, something throws me off again.'],
+    lensCap: (n, g) => `My ${ordEn(n)} attempt passed <b>${g}</b> from you.<small>so close you need a lens to see it</small>`,
     lensInfo: (n, g, z) => `attempt <b>#${num(n)}</b><br>${g} · zoom ${z}`,
     probeQ: 'You choose: how close?',
-    probeAns: n => `it gets there on attempt <b>${num(n)}</b>`,
-    probeBeyond: n => `after attempt <b>${num(n)}</b>… but it gets there`,
+    probeAns: n => `I get there on attempt <b>${num(n)}</b>`,
+    probeBeyond: n => `after attempt <b>${num(n)}</b>… but I get there`,
     show: 'Show me', next: 'Continue →',
     asks: f => `${f} is asking:`, defaultQ: 'Will you go out with me?',
     tries: n => n > 0 ? `This is attempt #${num(n + 1)}.` : 'This is the first attempt.',
-    hint: 'a “yes” turns π into 3.14 — and the circle closes',
+    hint: 'a “yes” turns π into 3.14 — and the next attempt reaches you',
     yes: 'Yes', no: 'Not yet',
     yesTitle: '<span class="gold">π</span> became <span class="gold">3.14</span>',
-    yesBig: 'We met.', yesSub: n => `after ${num(n)} ${n === 1 ? 'attempt' : 'attempts'}, the circle closed`,
-    noBig: 'Okay.', noSub: 'The circle keeps turning, quietly, no rush.<small>every attempt passes a little closer</small>',
+    fin1: 'Until one attempt was different.',
+    fin2: 'slower… closer…',
+    yesBig: 'That was the moment.',
+    yesSub: n => n > 1 ? `after ${num(n)} attempts, I reached you` : 'on the very first attempt, I reached you',
+    noBig: 'Okay.', noSub: 'I keep turning, quietly, no rush.<small>every attempt passes a little closer</small>',
     reply: 'Send your answer', changed: 'I changed my mind',
     replyYes: 'Yes. π became 3.14. 💜', replyNo: 'Not yet.',
     make: '✎ make your own',
     bTitle: 'There is always <span>a chance</span>',
-    bLead: 'Make a link. They will watch π try again and again, closer every time — and then see your question.',
-    bTo: 'For (name)', bFrom: 'From (yours)', bQ: 'Your question', bN: 'How many times have you asked already?',
+    bLead: 'Make a link. The golden dot will be the person who opens it; the bright tip, you — trying again and again, closer every time. Then, your question.',
+    bTo: 'For (name)', bFrom: 'From (yours)', bQ: 'Your question', bN: 'How many times have you tried already?',
     bMake: 'Make the link', bDemo: 'see an example',
     bReady: 'Ready. Send it:', copy: 'Copy', share: 'Share', preview: 'Preview',
     copied: 'Copied', privacy: 'Nothing is stored anywhere — the names and the question live only inside the link.',
-    aria: 'Two rotating arms drawing a glowing flower that never closes'
+    aria: 'A bright tip draws a flower, passing ever closer to a golden dot'
   }
 };
 
@@ -305,6 +321,7 @@ const Q = new URLSearchParams(location.search);
 const SPD = clamp(parseFloat(Q.get('speed')) || 1, .25, 20);
 let lang = data ? data.l : (Q.get('lang') === 'en' ? 'en' : (navigator.language || '').startsWith('el') || !navigator.language ? 'el' : 'en');
 let L = T[lang];
+const ordEn = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th'));
 const num = n => Number(n).toLocaleString(lang === 'el' ? 'el-GR' : 'en-US');
 const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
@@ -356,10 +373,14 @@ const lensWrap = $('#lensWrap'), lens = $('#lens'), lx = lens.getContext('2d');
 let W = 1, H = 1, dpr = 1, cx = 0, cy = 0, R = 0, a = 0, ldpr = 1;
 
 /* ---------------- simulation state ---------------- */
-let tau = 0, nBase = 0, dBase = 0, phi0 = 0, turns = 0;
+let tau = 0, nBase = 0, dBase = 0, phi0 = PI, turns = 0;
 let best = null, holdUntil = 0, phase = 'idle', speedFn = () => .6;
 let recent = [], rollTo = null;
 let lensSt = null;
+let lastRec = -99, driftN = 0, lensDone = false;
+const cam = { s: 1, x: 0, y: 0 };            // world point shown at the stage centre, and zoom
+const toS = (x, y) => [cx + (x - cam.x) * cam.s, cy + (y - cam.y) * cam.s];
+const camReset = () => { cam.s = 1; cam.x = cx; cam.y = cy; };
 
 const completed = () => nBase + turns;
 function pos(t) {
@@ -386,7 +407,8 @@ function layout() {
   ldpr = Math.min(window.devicePixelRatio || 1, 2);
   lens.width = lens.height = Math.round(ls * ldpr);
   drawBackground();
-  if (phase === 'closed') drawClosed(); else redrawTrail();
+  if (!fin) camReset();
+  if (phase === 'closed') drawClosed(); else if (!fin) redrawTrail();
 }
 
 function drawBackground() {
@@ -410,8 +432,8 @@ function drawBackground() {
 function strokeRange(t0, t1, step) {
   let s = t0;
   while (s < t1) {
-    tx.beginPath(); let p = pos(s); tx.moveTo(p[0], p[1]);
-    for (let i = 0; i < 400 && s < t1; i++) { s = Math.min(t1, s + step); p = pos(s); tx.lineTo(p[0], p[1]); }
+    tx.beginPath(); let p = toS(...pos(s)); tx.moveTo(p[0], p[1]);
+    for (let i = 0; i < 400 && s < t1; i++) { s = Math.min(t1, s + step); p = toS(...pos(s)); tx.lineTo(p[0], p[1]); }
     tx.stroke();
   }
 }
@@ -444,7 +466,7 @@ function advance(dt) {
 
 function onTurn() {
   const m = completed();
-  const d = nBase === 0 ? sfrac(m * PI) : sfrac(dBase + turns * PI);
+  const d = nBase === 0 ? sfrac(m * PI + .5) : sfrac(dBase + turns * PI);
   const gap = gapRel(TAU * d);
   const isRecord = !best || gap < best.gap;
   if (isRecord) best = { n: m, d, gap };
@@ -453,10 +475,13 @@ function onTurn() {
     tx.fillStyle = 'rgba(0,0,0,.03)'; tx.fillRect(0, 0, trail.width, trail.height); tx.restore(); styleTrail();
   }
   if (phase === 'story') {
-    if (isRecord && m >= 2) { showLens(m, d, gap); caption(L.lensCap(m, fmtPct(gap))); }
-    else if (L.script[m]) caption(L.script[m]);
-    if (m === 15) showProbe();
-  } else if (isRecord && m >= 2 && phase !== 'idle') { Snd.chime(2); }
+    if (L.script[m]) caption(L.script[m]);
+    else if (isRecord && m >= 25 && !lensDone) { lensDone = true; showLens(m, d, gap); caption(L.lensCap(m, fmtPct(gap))); }
+    else if (isRecord && m >= 8 && m < 32) caption(L.recCap(m, fmtPct(gap)));
+    else if (lastRec >= 8 && m - lastRec === 3 && m < 32) caption(L.drift[driftN++ % L.drift.length]);
+    if (isRecord && m >= 8) { lastRec = m; Snd.chime(Math.min(5, driftN + 1)); }
+    if (m === 41) showProbe();
+  } else if (isRecord && m >= 2 && phase !== 'idle') Snd.chime(2);
   updateHeader();
 }
 
@@ -530,17 +555,22 @@ let flashAt = 0;
 function drawArms(now) {
   ax.clearRect(0, 0, arms.width, arms.height);
   ax.globalCompositeOperation = 'lighter';
-  const fill = phase === 'closed' ? 1 : Math.min(1, turns / 50);
-  let g = ax.createRadialGradient(cx, cy, 0, cx, cy, R * .22);
+  const zs = Math.sqrt(cam.s);
+  const [ccx, ccy] = toS(cx, cy), cr = R * .22 * cam.s;
+  const fill = phase === 'closed' || fin ? 1 : Math.min(1, turns / 50);
+  let g = ax.createRadialGradient(ccx, ccy, 0, ccx, ccy, cr);
   g.addColorStop(0, `rgba(255,255,255,${.22 + .55 * fill})`); g.addColorStop(.12, `rgba(200,180,255,${.15 + .3 * fill})`);
   g.addColorStop(1, 'rgba(120,90,255,0)');
-  ax.fillStyle = g; ax.fillRect(cx - R * .22, cy - R * .22, R * .44, R * .44);
+  ax.fillStyle = g; ax.fillRect(ccx - cr, ccy - cr, cr * 2, cr * 2);
 
-  const mx = cx + 2 * a, my = cy, pulse = .5 + .5 * Math.sin(now / 520);
-  g = ax.createRadialGradient(mx, my, 0, mx, my, 16 * dpr);
+  // the golden dot: beats faster as I get close in the finale
+  const near = fin ? clamp(1 - Math.abs(25 * TAU - tau) / (.85 * TAU), 0, 1) : 0;
+  const [mx, my] = toS(cx + 2 * a, cy), pulse = .5 + .5 * Math.sin(now / (520 - 330 * near));
+  const gr = 16 * dpr * zs * (1 + .5 * near);
+  g = ax.createRadialGradient(mx, my, 0, mx, my, gr);
   g.addColorStop(0, `rgba(255,225,150,${.55 + .35 * pulse})`); g.addColorStop(1, 'rgba(243,207,122,0)');
-  ax.fillStyle = g; ax.beginPath(); ax.arc(mx, my, 16 * dpr, 0, TAU); ax.fill();
-  ax.fillStyle = '#ffe8ad'; ax.beginPath(); ax.arc(mx, my, 2.2 * dpr, 0, TAU); ax.fill();
+  ax.fillStyle = g; ax.beginPath(); ax.arc(mx, my, gr, 0, TAU); ax.fill();
+  ax.fillStyle = '#ffe8ad'; ax.beginPath(); ax.arc(mx, my, 2.2 * dpr * Math.min(zs, 2.2), 0, TAU); ax.fill();
 
   if (lensSt && lensWrap.classList.contains('on')) { // tether from the dot to the lens
     const sr = stage.getBoundingClientRect(), lr = lensWrap.getBoundingClientRect();
@@ -552,48 +582,91 @@ function drawArms(now) {
 
   if (flashAt) {
     const e = (now - flashAt) / 1000;
-    for (let k = 0; k < 4; k++) {
-      const ph = e - k * .4; if (ph < 0 || ph > 2.4) continue;
-      ax.strokeStyle = `rgba(255,220,140,${.8 * (1 - ph / 2.4)})`; ax.lineWidth = 2 * dpr;
-      ax.beginPath(); ax.arc(mx, my, (8 + ph * 140) * dpr, 0, TAU); ax.stroke();
+    for (let k = 0; k < 5; k++) {
+      const ph = e - k * .4; if (ph < 0 || ph > 2.6) continue;
+      ax.strokeStyle = `rgba(255,220,140,${.8 * (1 - ph / 2.6)})`; ax.lineWidth = 2 * dpr;
+      ax.beginPath(); ax.arc(mx, my, (8 + ph * 150) * dpr, 0, TAU); ax.stroke();
     }
-    const f = Math.max(0, 1 - e / 1.8);
-    if (f > 0) { g = ax.createRadialGradient(mx, my, 0, mx, my, R * .8);
-      g.addColorStop(0, `rgba(255,240,200,${.9 * f})`); g.addColorStop(1, 'rgba(255,220,150,0)');
+    const f = Math.max(0, 1 - e / 2);
+    if (f > 0) { g = ax.createRadialGradient(mx, my, 0, mx, my, R * .9);
+      g.addColorStop(0, `rgba(255,240,200,${.95 * f})`); g.addColorStop(1, 'rgba(255,220,150,0)');
       ax.fillStyle = g; ax.fillRect(0, 0, arms.width, arms.height); }
   }
 
   if (recent.length > 1) {
     ax.lineCap = 'round';
     const t0 = recent[0][2], span = Math.max(1e-6, tau - t0);
+    let prev = toS(recent[0][0], recent[0][1]);
     for (let i = 1; i < recent.length; i++) {
-      const q = (recent[i][2] - t0) / span;
-      ax.strokeStyle = `rgba(255,255,255,${.75 * q * q})`; ax.lineWidth = (.8 + 1.6 * q) * dpr;
-      ax.beginPath(); ax.moveTo(recent[i - 1][0], recent[i - 1][1]); ax.lineTo(recent[i][0], recent[i][1]); ax.stroke();
+      const q = (recent[i][2] - t0) / span, cur = toS(recent[i][0], recent[i][1]);
+      ax.strokeStyle = `rgba(255,255,255,${.75 * q * q})`; ax.lineWidth = (.8 + 1.6 * q) * dpr * Math.min(zs, 1.8);
+      ax.beginPath(); ax.moveTo(prev[0], prev[1]); ax.lineTo(cur[0], cur[1]); ax.stroke();
+      prev = cur;
     }
   }
 
-  const ex = cx + a * Math.cos(tau), ey = cy - a * Math.sin(tau), [px, py] = pos(tau);
+  const [ex, ey] = toS(cx + a * Math.cos(tau), cy - a * Math.sin(tau)), [px, py] = toS(...pos(tau));
   ax.save();
   ax.shadowColor = 'rgba(200,185,255,.95)'; ax.shadowBlur = 10 * dpr;
   ax.strokeStyle = 'rgba(255,255,255,.88)'; ax.lineWidth = 1.5 * dpr; ax.lineCap = 'round';
-  ax.beginPath(); ax.moveTo(cx, cy); ax.lineTo(ex, ey); ax.lineTo(px, py); ax.stroke();
+  ax.beginPath(); ax.moveTo(ccx, ccy); ax.lineTo(ex, ey); ax.lineTo(px, py); ax.stroke();
   ax.fillStyle = '#fff'; ax.beginPath(); ax.arc(ex, ey, 2.6 * dpr, 0, TAU); ax.fill();
   ax.restore();
-  g = ax.createRadialGradient(px, py, 0, px, py, 14 * dpr);
+  const tr = 14 * dpr * Math.min(zs, 2);
+  g = ax.createRadialGradient(px, py, 0, px, py, tr);
   g.addColorStop(0, '#fff'); g.addColorStop(.25, 'rgba(220,205,255,.7)'); g.addColorStop(1, 'rgba(150,120,255,0)');
-  ax.fillStyle = g; ax.beginPath(); ax.arc(px, py, 14 * dpr, 0, TAU); ax.fill();
+  ax.fillStyle = g; ax.beginPath(); ax.arc(px, py, tr, 0, TAU); ax.fill();
   ax.globalCompositeOperation = 'source-over';
 }
 
-/* ---------------- the "yes": π slowly becomes 3,14 and the circle closes ---------------- */
-let morph = null;
-function drawMorphFrame(k) {
-  tx.clearRect(0, 0, trail.width, trail.height); styleTrail(.24);
-  const saveK = K; K = k; strokeRange(0, 50 * TAU, .05 / k); K = saveK;
+/* ---------------- the "yes": π becomes 3,14, then slow motion and zoom into the moment ----------------
+   3,14 = 157/50 and I started half a turn out of phase, so with 3,14 attempt 25 lands exactly on the golden dot. */
+const MEET = 25;
+let fin = null;
+function renderFinaleTrail() {
+  tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
+  if (cam.s < 2.5) { strokeRange(0, tau, .02 / K); return; }
+  // zoomed in: only the parts of each turn that can be on screen near the dot
+  const h = Math.hypot(trail.width, trail.height) / 2 / cam.s + Math.hypot(cam.x - cx - 2 * a, cam.y - cy);
+  const w = Math.min(PI, 1.3 * Math.sqrt(2 * h / a) + .1), step = .024 / K / Math.sqrt(cam.s);
+  for (let j = 0; j <= MEET; j++) {
+    const lo = Math.max(0, j * TAU - w), hi = Math.min(tau, j * TAU + w);
+    if (lo < hi) strokeRange(lo, hi, step);
+  }
+}
+function finaleFrame(now) {
+  const e = (now - fin.start) / 1000, tEnd = MEET * TAU, tA = tEnd - .85 * TAU, mx = cx + 2 * a;
+  phi0 = PI; nBase = 0; turns = 0;
+  let redraw = true;
+  if (e < 3.5) {                       // π slowly turns into 3,14
+    const u = e / 3.5; K = PI + (3.14 - PI) * ease(u); tau = tA; camReset();
+    $('#counter').textContent = 'k = ' + K.toLocaleString(lang === 'el' ? 'el-GR' : 'en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+  } else if (e < 11.5) {               // the last approach: slow motion, the camera dives into the dot
+    K = 3.14;
+    const u = (e - 3.5) / 8;
+    tau = tEnd - .85 * TAU * Math.pow(1 - u, 2.6);
+    cam.s = 1 + 9 * ease(clamp(u * 1.08, 0, 1));
+    const cu = ease(clamp(u * 2, 0, 1)); cam.x = cx + (mx - cx) * cu; cam.y = cy;
+    if (!fin.c1) { fin.c1 = 1; $('#counter').innerHTML = L.yesTitle; caption(L.fin1); }
+    if (u > .45 && !fin.c2) { fin.c2 = 1; caption(L.fin2); }
+    if (now > fin.beat) { Snd.thump(); fin.beat = now + 950 - 500 * u; }
+  } else if (e < 15) {                 // the moment. hold it.
+    tau = tEnd; cam.s = 10; cam.x = mx; cam.y = cy;
+    if (!fin.touched) {
+      fin.touched = 1; flashAt = now; Snd.arp();
+      try { navigator.vibrate && navigator.vibrate([90, 70, 220]); } catch (er) {}
+      document.body.classList.add('closed');
+      caption(`<span class="big">${L.yesBig}</span>`);
+    } else redraw = false;
+  } else if (e < 18.5) {               // and slowly pull back to see the whole path
+    const u = ease((e - 15) / 3.5); cam.s = 10 - 9 * u; cam.x = mx + (cx - mx) * u; cam.y = cy;
+  } else { finishYes(); return; }
+  recent = [];
+  for (let i = 0; i <= 40; i++) { const t = tau - .5 * (1 - i / 40), p = pos(t); recent.push([p[0], p[1], t]); }
+  if (redraw) renderFinaleTrail();
 }
 function drawClosed() {
-  K = 3.14; phi0 = 0; tau = 50 * TAU;
+  K = 3.14; phi0 = PI; nBase = 0; turns = 0; tau = MEET * TAU;
   tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
   strokeRange(0, tau, .012 / K);
   recent = [];
@@ -624,12 +697,21 @@ const Snd = {
     o.connect(g); g.connect(this.master); o.start(t); o2.start(t); o.stop(t + 3.3); o2.stop(t + 3.3);
   },
   chime(i) { const s = [523.25, 587.33, 659.25, 783.99, 880, 1046.5]; this.bell(s[clamp(i, 0, 5)]); this.bell(s[clamp(i, 0, 5)] * 1.5, .22, .06); },
-  resolve() {
+  glide() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime; this.o2.frequency.cancelScheduledValues(t);
-    this.o2.frequency.setValueAtTime(this.o2.frequency.value, t); this.o2.frequency.linearRampToValueAtTime(330, t + 4.5);
-    [261.63, 329.63, 392, 523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.bell(f, 4.3 + i * .16, .1));
+    this.o2.frequency.setValueAtTime(this.o2.frequency.value, t); this.o2.frequency.linearRampToValueAtTime(330, t + 3.5);
   },
+  thump() {
+    const c = this.ctx; if (!c) return;
+    [[0, .32], [.2, .2]].forEach(([dt, v]) => {
+      const t = c.currentTime + dt, o = c.createOscillator(), g = c.createGain();
+      o.frequency.setValueAtTime(62, t); o.frequency.exponentialRampToValueAtTime(38, t + .25);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + .3);
+      o.connect(g); g.connect(this.master); o.start(t); o.stop(t + .32);
+    });
+  },
+  arp() { [261.63, 329.63, 392, 523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.bell(f, i * .14, .11)); },
   toggle() { this.on = !this.on; if (this.master) this.master.gain.setTargetAtTime(this.on ? .9 : 0, this.ctx.currentTime, .2); return this.on; }
 };
 
@@ -638,24 +720,25 @@ const story = $('#story');
 function caption(html) { story.innerHTML = `<div class="cap">${html}</div>`; }
 
 function updateHeader() {
+  if (fin) return;
   if (phase === 'closed') { $('#counter').innerHTML = L.yesTitle; return; }
   if (rollTo) return;
   const held = performance.now() < holdUntil;
   $('#counter').textContent = L.attempt(held ? completed() : completed() + 1);
-  $('#statline').textContent = best && best.n >= 2 && phase !== 'ask' && phase !== 'morph' ? L.stat(best.n, fmtPct(best.gap)) : '';
+  $('#statline').textContent = best && best.n >= 2 && phase !== 'ask' ? L.stat(best.n, fmtPct(best.gap)) : '';
 }
 
 function showProbe() {
   story.innerHTML = `<div id="probe">
     <div class="q">${L.probeQ}</div>
-    <div class="row"><input id="eps" type="range" min="0" max="100" step="1" value="22" aria-label="${L.probeQ}"><output id="epsOut"></output></div>
+    <div class="row"><input id="eps" type="range" min="0" max="100" step="1" value="44" aria-label="${L.probeQ}"><output id="epsOut"></output></div>
     <div id="probeAns"></div>
     <div class="btns"><button class="btn gold sm" id="showBtn">${L.show}</button>${data ? `<button class="btn sm" id="nextBtn">${L.next}</button>` : ''}</div>
   </div>`;
   const eps = $('#eps'), out = $('#epsOut'), ans = $('#probeAns');
   let target = null;
   const upd = () => {
-    const pct = Math.pow(10, -eps.value * .26); // 1% … 10⁻²⁶ %
+    const pct = Math.pow(10, -eps.value * .18); // 1% … 10⁻¹⁸ %
     out.textContent = fmtPct(pct / 100);
     target = RECS.find(r => r.gap * 100 < pct && r.n > 1);
     ans.innerHTML = target ? L.probeAns(target.n) : L.probeBeyond(RECS[RECS.length - 1].n);
@@ -710,16 +793,13 @@ function ask() {
 function sayYes() {
   document.body.classList.remove('asking'); $('#statline').textContent = '';
   $('#ask').hidden = true; story.style.visibility = '';
-  phase = 'morph'; lensWrap.classList.remove('on'); lensSt = null;
+  phase = 'finale'; lensWrap.classList.remove('on'); lensSt = null;
   story.innerHTML = '';
-  morph = { start: performance.now(), dur: 4600 };
-  Snd.resolve();
+  fin = { start: performance.now(), beat: 0 };
+  Snd.glide();
 }
 function finishYes() {
-  morph = null; phase = 'closed'; drawClosed();
-  document.body.classList.add('closed');
-  flashAt = performance.now();
-  try { navigator.vibrate && navigator.vibrate([90, 70, 200]); } catch (e) {}
+  fin = null; phase = 'closed'; camReset(); drawClosed();
   updateHeader();
   $('#statline').textContent = '';
   const n = (data ? data.n : 0) + 1;
@@ -787,11 +867,12 @@ function begin() {
   Snd.start();
   reset();
   phase = 'story';
-  speedFn = () => .3 + Math.min(turns, 14) * .06;
+  speedFn = () => .3 + Math.min(turns, 10) * .07;
   caption(L.script[0]);
 }
 function reset() {
-  K = PI; tau = 0; nBase = 0; dBase = 0; phi0 = 0; turns = 0; best = null; holdUntil = 0; recent = [];
+  K = PI; tau = 0; nBase = 0; dBase = 0; phi0 = PI; turns = 0; best = null; holdUntil = 0; recent = [];
+  lastRec = -99; driftN = 0; lensDone = false; fin = null; camReset();
   lensSt = null; lensWrap.classList.remove('on'); flashAt = 0;
   document.body.classList.remove('closed', 'fading');
   tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
@@ -817,12 +898,7 @@ document.addEventListener('visibilitychange', () => { paused = document.hidden; 
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
-  if (morph) {
-    const u = clamp((now - morph.start) / morph.dur, 0, 1);
-    K = PI + (3.14 - PI) * ease(u); phi0 = 0; tau = 50 * TAU * ease(Math.min(1, u * 1.05)); recent = [];
-    drawMorphFrame(K);
-    $('#counter').textContent = 'k = ' + K.toLocaleString(lang === 'el' ? 'el-GR' : 'en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
-    if (u >= 1) finishYes();
+  if (fin) { finaleFrame(now);
   } else if (!paused && phase !== 'closed' && phase !== 'pre' && now >= holdUntil && !rollTo) {
     advance(dt);
     if (now - (frame.h || 0) > 250) { frame.h = now; updateHeader(); }
