@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Πάντα υπάρχει μια πιθανότητα</title>
+<meta name="description" content="Το π δεν κλείνει ποτέ τον κύκλο του — αλλά κάθε προσπάθεια περνά πιο κοντά. Και ένα «ναι» το κάνει 3,14.">
+<meta name="theme-color" content="#07040f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07040f; --violet:#8f72ff; --lavender:#c9bcff; --gold:#f3cf7a;
+    --text:#efeaff; --muted:#a197cc; --glass:rgba(255,255,255,.06); --line:rgba(201,188,255,.2);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text)}
+  body{font-family:var(--serif);display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;font-variant-numeric:lining-nums}
+  [hidden]{display:none!important}
+  #bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+
+  header{position:relative;z-index:3;text-align:center;padding:max(20px,env(safe-area-inset-top)) 16px 0;min-height:84px}
+  #forline{font-style:italic;color:var(--muted);font-size:clamp(16px,3.4vw,21px);min-height:1.2em;letter-spacing:.02em}
+  #forline b{color:var(--gold);font-weight:500}
+  h1{margin:2px 0 0;font-weight:500;font-style:italic;line-height:1.1;font-size:clamp(30px,6.6vw,54px);
+    text-shadow:0 0 26px rgba(143,114,255,.4)}
+  h1 .gold{color:var(--gold);font-weight:700;font-style:normal;text-shadow:0 0 22px rgba(243,207,122,.55)}
+  #statline{font-family:var(--sans);font-size:12.5px;color:var(--muted);letter-spacing:.03em;margin-top:4px;min-height:1.3em;opacity:.85}
+
+  #stage{position:relative;flex:1;min-height:0;z-index:1}
+  #stage>canvas{position:absolute;inset:0;width:100%;height:100%}
+  #bloom{filter:blur(5px);opacity:.55;mix-blend-mode:screen;transition:opacity 1.2s}
+  #trail{mix-blend-mode:screen;transition:opacity .6s ease}
+  #arms{mix-blend-mode:screen}
+  .fading #trail,.fading #bloom{opacity:0}
+  .closed #bloom{opacity:1}
+
+  #lensWrap{position:absolute;top:6px;right:10px;width:var(--ls,180px);height:var(--ls,180px);z-index:4;
+    opacity:0;transform:scale(.6);transform-origin:100% 0;transition:opacity .6s ease,transform .7s cubic-bezier(.2,1.4,.4,1);pointer-events:none}
+  #lensWrap.on{opacity:1;transform:none}
+  #lens{width:100%;height:100%;border-radius:50%;display:block;
+    box-shadow:0 0 0 1px rgba(243,207,122,.55),0 0 0 6px rgba(20,12,40,.75),0 0 0 7px rgba(201,188,255,.25),0 10px 40px rgba(0,0,0,.6),0 0 40px rgba(143,114,255,.35)}
+  #lensInfo{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:12px;white-space:nowrap;
+    font-family:var(--sans);font-size:11.5px;letter-spacing:.04em;color:var(--lavender);text-align:center;line-height:1.5;
+    text-shadow:0 1px 6px #000}
+  #lensInfo b{color:var(--gold);font-weight:600}
+
+  #story{position:relative;z-index:3;text-align:center;padding:4px 18px 4px;min-height:104px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;font-style:italic;color:var(--text);font-size:clamp(18px,3.6vw,23px);line-height:1.32}
+  #story b{color:var(--gold);font-weight:500}
+  #story small{display:block;margin-top:4px;font-family:var(--sans);font-style:normal;font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+  .cap{max-width:640px;animation:rise 1.3s ease both}
+  .big{display:block;font-size:clamp(32px,7vw,52px);color:var(--gold);font-weight:500;text-shadow:0 0 26px rgba(243,207,122,.5)}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+
+  #probe{width:min(560px,100%);font-family:var(--sans);font-style:normal;font-size:14px;color:var(--muted);animation:rise 1.2s ease both}
+  #probe .q{font-family:var(--serif);font-style:italic;font-size:clamp(19px,3.8vw,23px);color:var(--text);margin-bottom:6px}
+  #probe .row{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap}
+  #probe input{flex:1;min-width:150px;max-width:300px;accent-color:var(--gold)}
+  #probe output{color:var(--gold);font-weight:600;min-width:92px;text-align:left}
+  #probeAns{margin-top:6px;color:var(--lavender)}
+  #probeAns b{color:var(--gold);font-weight:700}
+
+  .btn{appearance:none;border:1px solid var(--line);background:var(--glass);color:var(--text);cursor:pointer;
+    height:40px;padding:0 18px;border-radius:999px;font:600 14px var(--sans);letter-spacing:.02em;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .2s,transform .15s}
+  .btn:hover{background:rgba(255,255,255,.11)}
+  .btn:active{transform:scale(.97)}
+  .btn.gold{background:linear-gradient(180deg,#f7dc96,#e8b95a);color:#2a1a05;border-color:transparent;box-shadow:0 0 24px rgba(243,207,122,.45)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted);font-weight:500}
+  .btn.sm{height:34px;padding:0 14px;font-size:13px}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--lavender);outline-offset:2px}
+  .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+
+  footer{position:relative;z-index:3;display:flex;gap:8px;justify-content:center;align-items:center;
+    padding:4px 16px max(12px,env(safe-area-inset-bottom))}
+  .icon{appearance:none;border:1px solid var(--line);background:var(--glass);color:var(--text);cursor:pointer;
+    height:34px;min-width:34px;padding:0 12px;border-radius:999px;font:600 12.5px var(--sans);letter-spacing:.04em}
+
+  .overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:20px;overflow:auto}
+  #intro{background:radial-gradient(ellipse at center,rgba(20,10,45,.55),rgba(5,3,12,.92));cursor:pointer;text-align:center;transition:opacity 1s}
+  #intro.gone{opacity:0;pointer-events:none}
+  #intro .for{font-style:italic;color:var(--muted);font-size:22px}
+  #intro .name{font-size:clamp(44px,11vw,84px);font-style:italic;font-weight:500;color:var(--gold);text-shadow:0 0 34px rgba(243,207,122,.5);line-height:1.05;margin:.1em 0 .25em}
+  #intro .tap{font-family:var(--sans);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--lavender);animation:breathe 2.4s ease-in-out infinite}
+  #intro .snd{font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:10px}
+  @keyframes breathe{50%{opacity:.35}}
+
+  .card{width:min(540px,100%);background:rgba(16,10,34,.78);border:1px solid var(--line);border-radius:22px;padding:22px 22px 18px;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 60px rgba(143,114,255,.18);
+    animation:rise 1s ease both;text-align:center}
+  #ask{position:fixed;left:16px;right:16px;margin:0 auto;bottom:max(16px,env(safe-area-inset-bottom));z-index:9;width:auto;max-width:540px}
+  .asking footer{visibility:hidden}
+  #builder{background:rgba(5,3,12,.55)}
+  #ask .from{font-style:italic;color:var(--muted);font-size:19px}
+  #ask .question{font-size:clamp(30px,7vw,44px);font-weight:500;font-style:italic;line-height:1.12;margin:.15em 0 .2em;color:#fff;text-shadow:0 0 24px rgba(201,188,255,.4)}
+  #ask .tries{font-family:var(--sans);font-size:13px;color:var(--lavender);letter-spacing:.02em}
+  #ask .hint{font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:10px}
+
+  #builder .card{text-align:left}
+  #builder h2{margin:0;font-weight:500;font-style:italic;font-size:clamp(30px,6vw,40px);line-height:1.1}
+  #builder h2 span{color:var(--gold)}
+  #builder p.lead{margin:.4em 0 1em;color:var(--muted);font-style:italic;font-size:18px;line-height:1.35}
+  .field{display:block;margin:10px 0;font-family:var(--sans);font-size:12.5px;color:var(--lavender);letter-spacing:.03em}
+  .field input,.field textarea{display:block;width:100%;margin-top:5px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;
+    color:var(--text);font:500 19px var(--serif);padding:9px 12px;resize:none}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #linkOut{margin-top:14px;font-family:var(--sans);font-size:12.5px;color:var(--muted)}
+  #linkOut code{display:block;word-break:break-all;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;color:var(--lavender);font-size:11.5px;max-height:70px;overflow:auto}
+  .privacy{font-family:var(--sans);font-size:11.5px;color:var(--muted);margin-top:12px;opacity:.85}
+  #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:20;background:rgba(30,20,60,.95);border:1px solid var(--line);
+    padding:8px 16px;border-radius:999px;font:500 13px var(--sans);opacity:0;transition:opacity .3s;pointer-events:none}
+  #toast.on{opacity:1}
+  @media (max-width:420px){ .two{grid-template-columns:1fr} #story{min-height:118px} }
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+
+<header>
+  <div id="forline"></div>
+  <h1 id="counter"></h1>
+  <div id="statline"></div>
+</header>
+
+<div id="stage" role="img">
+  <canvas id="bloom"></canvas>
+  <canvas id="trail"></canvas>
+  <canvas id="arms"></canvas>
+  <div id="lensWrap" aria-hidden="true"><canvas id="lens"></canvas><div id="lensInfo"></div></div>
+</div>
+
+<div id="story" aria-live="polite"></div>
+
+<footer>
+  <button class="icon" id="muteBtn" aria-label="sound">♪</button>
+  <button class="icon" id="langBtn">EN</button>
+  <button class="icon" id="makeBtn"></button>
+</footer>
+
+<div id="intro" class="overlay" hidden>
+  <div>
+    <div class="for" id="introFor"></div>
+    <div class="name" id="introName"></div>
+    <div class="tap" id="introTap"></div>
+    <div class="snd" id="introSnd"></div>
+  </div>
+</div>
+
+<div id="ask" class="card" hidden>
+  <div class="from" id="askFrom"></div>
+  <div class="question" id="askQ"></div>
+  <div class="tries" id="askTries"></div>
+  <div class="btns">
+    <button class="btn gold" id="yesBtn"></button>
+    <button class="btn" id="noBtn"></button>
+  </div>
+  <div class="hint" id="askHint"></div>
+</div>
+
+<div id="builder" class="overlay" hidden>
+  <div class="card">
+    <h2 id="bTitle"></h2>
+    <p class="lead" id="bLead"></p>
+    <div class="two">
+      <label class="field"><span id="bToL"></span><input id="bTo" maxlength="40" autocomplete="off"></label>
+      <label class="field"><span id="bFromL"></span><input id="bFrom" maxlength="40" autocomplete="off"></label>
+    </div>
+    <label class="field"><span id="bQL"></span><textarea id="bQ" rows="2" maxlength="140"></textarea></label>
+    <label class="field"><span id="bNL"></span><input id="bN" type="number" min="0" max="9999" value="0" inputmode="numeric"></label>
+    <div class="btns" style="justify-content:flex-start">
+      <button class="btn gold" id="bMake"></button>
+      <button class="btn ghost" id="bDemo"></button>
+    </div>
+    <div id="linkOut" hidden>
+      <span id="bReady"></span>
+      <code id="bLink"></code>
+      <div class="btns" style="justify-content:flex-start;margin-top:4px">
+        <button class="btn sm" id="bCopy"></button>
+        <button class="btn sm" id="bShare"></button>
+        <button class="btn sm" id="bPreview"></button>
+      </div>
+    </div>
+    <div class="privacy" id="bPrivacy"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2, PI = Math.PI;
+const $ = s => document.querySelector(s);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const sfrac = x => x - Math.round(x);
+const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+
+/* Attempts n where n·π comes closer to a whole number than ever before
+   (denominators of π's continued fraction), with the signed remainder δ = n·π − round(n·π),
+   computed with 100-digit precision. These are the turns where the path passes closest to the start. */
+const RECORDS = [[1,0.14159265358979323],[7,-0.008851424871447331],[106,0.008821280518083277],[113,-3.014435336405372e-05],[33102,1.912933577959042e-05],[33215,-1.10150175844633e-05],[66317,8.114318195127121e-06],[99532,-2.9006993893361787e-06],[265381,2.3129194164547636e-06],[364913,-5.877799728814151e-07],[1360120,5.495794978105185e-07],[1725033,-3.820047507089661e-08],[25510582,1.477284681796591e-08],[52746197,-8.654781434964792e-09],[78256779,6.1180653830011166e-09],[131002976,-2.5367160519636766e-09],[340262731,1.0446332790737633e-09],[811528438,-4.474494938161497e-10],[1963319607,1.4973429144146398e-10],[4738167652,-1.4798091093322177e-10],[6701487259,1.7533805082422143e-12],[567663097408,-6.969482408757582e-13]];
+
+/* ---------------- text ---------------- */
+const T = {
+  el: {
+    title: 'Πάντα υπάρχει μια πιθανότητα',
+    attempt: n => `προσπάθεια ${num(n)}`,
+    stat: (n, g) => `πιο κοντά μέχρι τώρα · #${num(n)} · ${g} μακριά`,
+    for: 'για',
+    tap: 'άγγιξε για να ξεκινήσει', snd: 'καλύτερα με ήχο',
+    script: {
+      0: 'Δύο κύκλοι. Ο δεύτερος γυρίζει <b>π</b> φορές πιο γρήγορα από τον πρώτο.',
+      2: 'Κάθε γύρος είναι μια <b>προσπάθεια</b> να ξαναβρεθούν εκεί που ξεκίνησαν — στη χρυσή κουκκίδα.',
+      4: 'Το π όμως δεν γράφεται ως κλάσμα. Ο κύκλος <b>δεν κλείνει ποτέ</b> ακριβώς.',
+      10: 'Κι όμως, τα μαθηματικά εγγυώνται κάτι:',
+      12: '<b>όσο κοντά κι αν ορίσεις — κάποια προσπάθεια θα φτάσει εκεί.</b><small>θεώρημα Dirichlet · 1842 · όχι ελπίδα, απόδειξη</small>'
+    },
+    lensCap: (n, g) => `Η προσπάθεια ${num(n)} πέρασε <b>${g}</b> μακριά.<small>τόσο κοντά, που χρειάζεται φακός για να φανεί</small>`,
+    lensInfo: (n, g, z) => `προσπάθεια <b>#${num(n)}</b><br>${g} · μεγέθυνση ${z}`,
+    probeQ: 'Διάλεξε εσύ: πόσο κοντά;',
+    probeAns: n => `θα φτάσει εκεί στην προσπάθεια <b>${num(n)}</b>`,
+    probeBeyond: n => `μετά την προσπάθεια <b>${num(n)}</b>… αλλά θα φτάσει`,
+    show: 'Δείξε μου', next: 'Συνέχεια →',
+    asks: f => `${f} ρωτάει:`, defaultQ: 'Θα βγεις μαζί μου;',
+    tries: n => n > 0 ? `Αυτή είναι η προσπάθεια #${num(n + 1)}.` : 'Αυτή είναι η πρώτη προσπάθεια.',
+    hint: 'ένα «ναι» κάνει το π 3,14 — και ο κύκλος κλείνει',
+    yes: 'Ναι', no: 'Όχι ακόμα',
+    yesTitle: 'Το <span class="gold">π</span> έγινε <span class="gold">3,14</span>',
+    yesBig: 'Συναντηθήκαμε.', yesSub: n => `μετά από ${num(n)} ${n === 1 ? 'προσπάθεια' : 'προσπάθειες'}, ο κύκλος έκλεισε`,
+    noBig: 'Εντάξει.', noSub: 'Ο κύκλος συνεχίζει ήσυχα, χωρίς βιασύνη.<small>κάθε προσπάθεια περνά λίγο πιο κοντά</small>',
+    reply: 'Στείλε την απάντηση', changed: 'άλλαξα γνώμη',
+    replyYes: 'Ναι. Το π έγινε 3,14. 💜', replyNo: 'Όχι ακόμα.',
+    make: '✎ φτιάξε το δικό σου',
+    bTitle: 'Πάντα υπάρχει <span>μια πιθανότητα</span>',
+    bLead: 'Φτιάξε έναν σύνδεσμο. Θα δει το π να προσπαθεί ξανά και ξανά, όλο και πιο κοντά — και στο τέλος την ερώτησή σου.',
+    bTo: 'Για (όνομα)', bFrom: 'Από (το δικό σου)', bQ: 'Η ερώτηση', bN: 'Πόσες φορές έχεις ήδη ρωτήσει;',
+    bMake: 'Φτιάξε τον σύνδεσμο', bDemo: 'δες ένα παράδειγμα',
+    bReady: 'Έτοιμο. Στείλ’ το:', copy: 'Αντιγραφή', share: 'Κοινοποίηση', preview: 'Προεπισκόπηση',
+    copied: 'Αντιγράφηκε', privacy: 'Τίποτα δεν αποθηκεύεται πουθενά — τα ονόματα και η ερώτηση ζουν μόνο μέσα στον σύνδεσμο.',
+    aria: 'Δύο περιστρεφόμενοι βραχίονες ζωγραφίζουν ένα φωτεινό λουλούδι που δεν κλείνει ποτέ'
+  },
+  en: {
+    title: 'There is always a chance',
+    attempt: n => `attempt ${num(n)}`,
+    stat: (n, g) => `closest so far · #${num(n)} · ${g} away`,
+    for: 'for',
+    tap: 'tap to begin', snd: 'best with sound on',
+    script: {
+      0: 'Two circles. The second spins <b>π</b> times faster than the first.',
+      2: 'Every turn is an <b>attempt</b> to get back to where they started — the golden dot.',
+      4: 'But π is not a fraction. The circle <b>never closes</b> exactly.',
+      10: 'And yet, mathematics guarantees something:',
+      12: '<b>however close you ask for — some attempt will get there.</b><small>Dirichlet’s theorem · 1842 · not hope, proof</small>'
+    },
+    lensCap: (n, g) => `Attempt ${num(n)} passed <b>${g}</b> away.<small>so close you need a lens to see it</small>`,
+    lensInfo: (n, g, z) => `attempt <b>#${num(n)}</b><br>${g} · zoom ${z}`,
+    probeQ: 'You choose: how close?',
+    probeAns: n => `it gets there on attempt <b>${num(n)}</b>`,
+    probeBeyond: n => `after attempt <b>${num(n)}</b>… but it gets there`,
+    show: 'Show me', next: 'Continue →',
+    asks: f => `${f} is asking:`, defaultQ: 'Will you go out with me?',
+    tries: n => n > 0 ? `This is attempt #${num(n + 1)}.` : 'This is the first attempt.',
+    hint: 'a “yes” turns π into 3.14 — and the circle closes',
+    yes: 'Yes', no: 'Not yet',
+    yesTitle: '<span class="gold">π</span> became <span class="gold">3.14</span>',
+    yesBig: 'We met.', yesSub: n => `after ${num(n)} ${n === 1 ? 'attempt' : 'attempts'}, the circle closed`,
+    noBig: 'Okay.', noSub: 'The circle keeps turning, quietly, no rush.<small>every attempt passes a little closer</small>',
+    reply: 'Send your answer', changed: 'I changed my mind',
+    replyYes: 'Yes. π became 3.14. 💜', replyNo: 'Not yet.',
+    make: '✎ make your own',
+    bTitle: 'There is always <span>a chance</span>',
+    bLead: 'Make a link. They will watch π try again and again, closer every time — and then see your question.',
+    bTo: 'For (name)', bFrom: 'From (yours)', bQ: 'Your question', bN: 'How many times have you asked already?',
+    bMake: 'Make the link', bDemo: 'see an example',
+    bReady: 'Ready. Send it:', copy: 'Copy', share: 'Share', preview: 'Preview',
+    copied: 'Copied', privacy: 'Nothing is stored anywhere — the names and the question live only inside the link.',
+    aria: 'Two rotating arms drawing a glowing flower that never closes'
+  }
+};
+
+/* ---------------- link data (lives in the #fragment, never sent to a server) ---------------- */
+function encode(o) {
+  const b = new TextEncoder().encode(JSON.stringify(o));
+  let s = ''; b.forEach(c => s += String.fromCharCode(c));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function decode(str) {
+  try {
+    const s = atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+    const o = JSON.parse(new TextDecoder().decode(Uint8Array.from(s, c => c.charCodeAt(0))));
+    return {
+      to: String(o.to || '').slice(0, 40), from: String(o.from || '').slice(0, 40),
+      q: String(o.q || '').slice(0, 140), n: clamp(parseInt(o.n) || 0, 0, 9999), l: o.l === 'en' ? 'en' : 'el'
+    };
+  } catch (e) { return null; }
+}
+const hashData = () => { const m = location.hash.match(/[#&]d=([\w-]+)/); return m ? decode(m[1]) : null; };
+let data = hashData();
+const Q = new URLSearchParams(location.search);
+const SPD = clamp(parseFloat(Q.get('speed')) || 1, .25, 20);
+let lang = data ? data.l : (Q.get('lang') === 'en' ? 'en' : (navigator.language || '').startsWith('el') || !navigator.language ? 'el' : 'en');
+let L = T[lang];
+const num = n => Number(n).toLocaleString(lang === 'el' ? 'el-GR' : 'en-US');
+const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+function sci(x, sig = 2) {
+  const e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+  const ms = m.toLocaleString(lang === 'el' ? 'el-GR' : 'en-US', { maximumSignificantDigits: sig });
+  return `${ms}·10${String(e).split('').map(c => SUP[c]).join('')}`;
+}
+const fmtPct = p => { const v = p * 100;
+  return (v >= 1e-4 ? v.toLocaleString(lang === 'el' ? 'el-GR' : 'en-US', { maximumSignificantDigits: 2, maximumFractionDigits: 20 }) : sci(v)) + '%'; };
+const fmtZoom = z => '×' + (z < 1e6 ? Math.round(z).toLocaleString(lang === 'el' ? 'el-GR' : 'en-US') : sci(z));
+
+/* ---------------- geometry ----------------
+   tip(τ) = e^{iτ} + e^{i(kτ+φ)} (unit arms). The meeting point is 2 (both arms pointing right).
+   Offsets from it are written with sin² so that tiny distances keep full precision. */
+let K = PI;
+function rel(t, phi, k = K) {
+  const s1 = Math.sin(t / 2), s2 = Math.sin((k * t + phi) / 2);
+  return [-2 * (s1 * s1 + s2 * s2), -(Math.sin(t) + Math.sin(k * t + phi))];
+}
+/* closest the path gets to the golden dot during the turn whose arm-2 phase at the finish line is φ,
+   as a fraction of the circle's diameter */
+function gapRel(phi, k = K) {
+  const f = t => { const [x, y] = rel(t, phi, k); return x * x + y * y; };
+  let lo, hi;
+  if (Math.abs(phi) < .5) { const c = -phi / (1 + k), w = Math.abs(phi) * .5 + 1e-300; lo = c - w; hi = c + w; }
+  else {
+    let bt = 0, bv = Infinity;
+    for (let i = 0; i <= 720; i++) { const t = -PI + TAU * i / 720, v = f(t); if (v < bv) { bv = v; bt = t; } }
+    lo = bt - TAU / 720; hi = bt + TAU / 720;
+  }
+  const g = (Math.sqrt(5) - 1) / 2;
+  let x1 = hi - g * (hi - lo), x2 = lo + g * (hi - lo), f1 = f(x1), f2 = f(x2);
+  for (let i = 0; i < 160; i++) {
+    if (f1 < f2) { hi = x2; x2 = x1; f2 = f1; x1 = hi - g * (hi - lo); f1 = f(x1); }
+    else { lo = x1; x1 = x2; f1 = f2; x2 = lo + g * (hi - lo); f2 = f(x2); }
+  }
+  return Math.sqrt(Math.min(f1, f2)) / 4;
+}
+const RECS = RECORDS.map(([n, d]) => ({ n, d, gap: gapRel(TAU * d, PI) }));
+
+/* ---------------- canvases ---------------- */
+const stage = $('#stage');
+const bg = $('#bg'), bgx = bg.getContext('2d');
+const trail = $('#trail'), tx = trail.getContext('2d');
+const bloom = $('#bloom'), bx = bloom.getContext('2d');
+const arms = $('#arms'), ax = arms.getContext('2d');
+const lensWrap = $('#lensWrap'), lens = $('#lens'), lx = lens.getContext('2d');
+let W = 1, H = 1, dpr = 1, cx = 0, cy = 0, R = 0, a = 0, ldpr = 1;
+
+/* ---------------- simulation state ---------------- */
+let tau = 0, nBase = 0, dBase = 0, phi0 = 0, turns = 0;
+let best = null, holdUntil = 0, phase = 'idle', speedFn = () => .6;
+let recent = [], rollTo = null;
+let lensSt = null;
+
+const completed = () => nBase + turns;
+function pos(t) {
+  const b = K * t + phi0;
+  return [cx + a * Math.cos(t) + a * Math.cos(b), cy - a * Math.sin(t) - a * Math.sin(b)];
+}
+
+function styleTrail(alpha = .26) {
+  tx.globalCompositeOperation = 'lighter';
+  tx.lineJoin = tx.lineCap = 'round';
+  tx.lineWidth = Math.max(1, .9 * dpr);
+  tx.strokeStyle = `rgba(150,120,255,${alpha})`;
+}
+
+function layout() {
+  const r = stage.getBoundingClientRect();
+  W = Math.max(1, r.width); H = Math.max(1, r.height);
+  dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  for (const c of [trail, arms]) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+  bloom.width = Math.max(1, Math.round(W * dpr / 4)); bloom.height = Math.max(1, Math.round(H * dpr / 4));
+  cx = W * dpr / 2; cy = H * dpr / 2; R = Math.min(W, H) / 2 * .9 * dpr; a = R / 2;
+  const ls = clamp(Math.min(W, H) * .36, 112, 210);
+  lensWrap.style.setProperty('--ls', ls + 'px');
+  ldpr = Math.min(window.devicePixelRatio || 1, 2);
+  lens.width = lens.height = Math.round(ls * ldpr);
+  drawBackground();
+  if (phase === 'closed') drawClosed(); else redrawTrail();
+}
+
+function drawBackground() {
+  const w = innerWidth, h = innerHeight, d = Math.min(window.devicePixelRatio || 1, 2);
+  bg.width = Math.round(w * d); bg.height = Math.round(h * d);
+  bgx.setTransform(d, 0, 0, d, 0, 0);
+  bgx.fillStyle = '#07040f'; bgx.fillRect(0, 0, w, h);
+  const neb = (x, y, r, c) => { const g = bgx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)'); bgx.fillStyle = g; bgx.fillRect(0, 0, w, h); };
+  neb(w * .5, h * .5, Math.max(w, h) * .6, 'rgba(60,30,120,.35)');
+  neb(w * .15, h * .2, Math.max(w, h) * .35, 'rgba(90,40,140,.18)');
+  neb(w * .85, h * .85, Math.max(w, h) * .4, 'rgba(40,30,110,.22)');
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0, c = Math.round(w * h / 5000); i < c; i++) {
+    const x = rnd() * w, y = rnd() * h, s = rnd();
+    bgx.fillStyle = `rgba(${200 + s * 55 | 0},${190 + s * 40 | 0},255,${.15 + s * s * .6})`;
+    bgx.beginPath(); bgx.arc(x, y, .3 + s * s * 1.1, 0, TAU); bgx.fill();
+  }
+}
+
+function strokeRange(t0, t1, step) {
+  let s = t0;
+  while (s < t1) {
+    tx.beginPath(); let p = pos(s); tx.moveTo(p[0], p[1]);
+    for (let i = 0; i < 400 && s < t1; i++) { s = Math.min(t1, s + step); p = pos(s); tx.lineTo(p[0], p[1]); }
+    tx.stroke();
+  }
+}
+function redrawTrail() {
+  tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
+  const from = nBase > 0 ? Math.min(tau, 0) - 22 * TAU : Math.max(0, tau - 60 * TAU);
+  strokeRange(from, tau, .012 / K);
+  recent = [];
+}
+
+function advance(dt) {
+  let remaining = speedFn() * SPD * TAU * dt;
+  const maxStep = .012 / K;
+  let p = pos(tau); tx.beginPath(); tx.moveTo(p[0], p[1]);
+  let drew = false;
+  while (remaining > 1e-12) {
+    const boundary = (turns + 1) * TAU;
+    let step = Math.min(maxStep, remaining), hit = false;
+    if (tau + step >= boundary) { step = boundary - tau; hit = true; }
+    tau = hit ? boundary : tau + step; remaining -= step;
+    p = pos(tau); tx.lineTo(p[0], p[1]); drew = true;
+    recent.push([p[0], p[1], tau]);
+    if (hit) { turns++; onTurn(); if (performance.now() < holdUntil) break; }
+  }
+  if (drew) tx.stroke();
+  const cut = tau - .55; let i = 0;
+  while (i < recent.length && recent[i][2] < cut) i++;
+  if (i) recent.splice(0, i);
+}
+
+function onTurn() {
+  const m = completed();
+  const d = nBase === 0 ? sfrac(m * PI) : sfrac(dBase + turns * PI);
+  const gap = gapRel(TAU * d);
+  const isRecord = !best || gap < best.gap;
+  if (isRecord) best = { n: m, d, gap };
+  if (turns > 70) { // keep the endless path breathing instead of saturating
+    tx.save(); tx.globalCompositeOperation = 'destination-out';
+    tx.fillStyle = 'rgba(0,0,0,.03)'; tx.fillRect(0, 0, trail.width, trail.height); tx.restore(); styleTrail();
+  }
+  if (phase === 'story') {
+    if (isRecord && m >= 2) { showLens(m, d, gap); caption(L.lensCap(m, fmtPct(gap))); }
+    else if (L.script[m]) caption(L.script[m]);
+    if (m === 15) showProbe();
+  } else if (isRecord && m >= 2 && phase !== 'idle') { Snd.chime(2); }
+  updateHeader();
+}
+
+/* ---------------- the lens: zoom into the golden dot ---------------- */
+function showLens(n, d, gap) {
+  const r = lens.width / 2;
+  const S0 = r / (a * 1.15);
+  const S1 = .36 * r / Math.max(gap * 4 * a, 1e-300);
+  const decades = Math.max(0, Math.log10(S1 / S0));
+  const dur = clamp(1600 + 520 * decades, 1800, 11000);
+  const now = performance.now();
+  lensSt = { n, d, gap, S0, S1, start: now + 450, dur };
+  lensWrap.classList.add('on');
+  holdUntil = Math.max(holdUntil, now + 450 + dur + 1400);
+  lensSt.hideAt = now + 450 + dur + 5200;
+  Snd.chime(Math.min(5, Math.round(decades / 4)));
+}
+
+function drawLens(now) {
+  if (!lensSt) return;
+  if (now > lensSt.hideAt) { lensWrap.classList.remove('on'); if (now > lensSt.hideAt + 800) { lensSt = null; } return; }
+  const { d, S0, S1, start, dur, n, gap } = lensSt;
+  const u = clamp((now - start) / dur, 0, 1), e = ease(u);
+  const S = S0 * Math.pow(S1 / S0, e);
+  const w = lens.width, r = w / 2;
+  lx.setTransform(1, 0, 0, 1, 0, 0);
+  const g0 = lx.createRadialGradient(r, r, 0, r, r, r);
+  g0.addColorStop(0, '#140a2c'); g0.addColorStop(1, '#07040f');
+  lx.fillStyle = g0; lx.fillRect(0, 0, w, w);
+  // faint grid that shows the zoom racing past
+  const step = Math.pow(10, Math.floor(Math.log10(r / S))) ;
+  const gpx = step * S;
+  lx.strokeStyle = 'rgba(201,188,255,.07)'; lx.lineWidth = 1;
+  for (const sc of [gpx, gpx / 10]) {
+    if (sc < 6) continue;
+    lx.beginPath();
+    for (let x = r % sc; x < w; x += sc) { lx.moveTo(x, 0); lx.lineTo(x, w); lx.moveTo(0, x); lx.lineTo(w, x); }
+    lx.stroke();
+  }
+  lx.globalCompositeOperation = 'lighter';
+  const J = 26;
+  for (let j = -J; j <= J; j++) {
+    const phi = j === 0 ? TAU * d : TAU * sfrac(d + j * PI);
+    const est = Math.abs(phi) < 1.2 ? a * phi * phi / ((1 + PI) * (1 + PI)) : a * .4;
+    if (j !== 0 && est * S > 1.6 * r) continue;
+    const c = Math.abs(phi) < 1.2 ? -phi / (1 + PI) : 0;
+    const span = Math.min(1.1, 2.4 * (r / S) / (a * (1 + PI)));
+    lx.beginPath();
+    for (let i = 0; i <= 180; i++) {
+      const t = c + span * (i / 90 - 1);
+      const [x, y] = rel(t, phi, PI);
+      const px = r + x * a * S, py = r + y * a * S;
+      i ? lx.lineTo(px, py) : lx.moveTo(px, py);
+    }
+    if (j === 0) {
+      lx.strokeStyle = 'rgba(150,120,255,.35)'; lx.lineWidth = 7 * ldpr; lx.stroke();
+      lx.strokeStyle = 'rgba(240,235,255,.95)'; lx.lineWidth = 1.8 * ldpr; lx.stroke();
+    } else { lx.strokeStyle = 'rgba(150,120,255,.5)'; lx.lineWidth = 1.2 * ldpr; lx.stroke(); }
+  }
+  // golden dot, always the same size: the lens zooms, the dot stays a dot
+  const gg = lx.createRadialGradient(r, r, 0, r, r, 16 * ldpr);
+  gg.addColorStop(0, 'rgba(255,225,150,.9)'); gg.addColorStop(1, 'rgba(243,207,122,0)');
+  lx.fillStyle = gg; lx.beginPath(); lx.arc(r, r, 16 * ldpr, 0, TAU); lx.fill();
+  lx.fillStyle = '#ffe8ad'; lx.beginPath(); lx.arc(r, r, 3.2 * ldpr, 0, TAU); lx.fill();
+  lx.globalCompositeOperation = 'source-over';
+  $('#lensInfo').innerHTML = L.lensInfo(n, fmtPct(gap), fmtZoom(S * dpr / ldpr));
+}
+
+/* ---------------- arms, glow, golden dot ---------------- */
+let flashAt = 0;
+function drawArms(now) {
+  ax.clearRect(0, 0, arms.width, arms.height);
+  ax.globalCompositeOperation = 'lighter';
+  const fill = phase === 'closed' ? 1 : Math.min(1, turns / 50);
+  let g = ax.createRadialGradient(cx, cy, 0, cx, cy, R * .22);
+  g.addColorStop(0, `rgba(255,255,255,${.22 + .55 * fill})`); g.addColorStop(.12, `rgba(200,180,255,${.15 + .3 * fill})`);
+  g.addColorStop(1, 'rgba(120,90,255,0)');
+  ax.fillStyle = g; ax.fillRect(cx - R * .22, cy - R * .22, R * .44, R * .44);
+
+  const mx = cx + 2 * a, my = cy, pulse = .5 + .5 * Math.sin(now / 520);
+  g = ax.createRadialGradient(mx, my, 0, mx, my, 16 * dpr);
+  g.addColorStop(0, `rgba(255,225,150,${.55 + .35 * pulse})`); g.addColorStop(1, 'rgba(243,207,122,0)');
+  ax.fillStyle = g; ax.beginPath(); ax.arc(mx, my, 16 * dpr, 0, TAU); ax.fill();
+  ax.fillStyle = '#ffe8ad'; ax.beginPath(); ax.arc(mx, my, 2.2 * dpr, 0, TAU); ax.fill();
+
+  if (lensSt && lensWrap.classList.contains('on')) { // tether from the dot to the lens
+    const sr = stage.getBoundingClientRect(), lr = lensWrap.getBoundingClientRect();
+    const lxc = (lr.left - sr.left + lr.width / 2) * dpr, lyc = (lr.top - sr.top + lr.height / 2) * dpr, lr2 = lr.width / 2 * dpr;
+    const ang = Math.atan2(my - lyc, mx - lxc);
+    ax.strokeStyle = 'rgba(243,207,122,.35)'; ax.lineWidth = 1 * dpr; ax.setLineDash([3 * dpr, 4 * dpr]);
+    ax.beginPath(); ax.moveTo(mx, my); ax.lineTo(lxc + Math.cos(ang) * lr2, lyc + Math.sin(ang) * lr2); ax.stroke(); ax.setLineDash([]);
+  }
+
+  if (flashAt) {
+    const e = (now - flashAt) / 1000;
+    for (let k = 0; k < 4; k++) {
+      const ph = e - k * .4; if (ph < 0 || ph > 2.4) continue;
+      ax.strokeStyle = `rgba(255,220,140,${.8 * (1 - ph / 2.4)})`; ax.lineWidth = 2 * dpr;
+      ax.beginPath(); ax.arc(mx, my, (8 + ph * 140) * dpr, 0, TAU); ax.stroke();
+    }
+    const f = Math.max(0, 1 - e / 1.8);
+    if (f > 0) { g = ax.createRadialGradient(mx, my, 0, mx, my, R * .8);
+      g.addColorStop(0, `rgba(255,240,200,${.9 * f})`); g.addColorStop(1, 'rgba(255,220,150,0)');
+      ax.fillStyle = g; ax.fillRect(0, 0, arms.width, arms.height); }
+  }
+
+  if (recent.length > 1) {
+    ax.lineCap = 'round';
+    const t0 = recent[0][2], span = Math.max(1e-6, tau - t0);
+    for (let i = 1; i < recent.length; i++) {
+      const q = (recent[i][2] - t0) / span;
+      ax.strokeStyle = `rgba(255,255,255,${.75 * q * q})`; ax.lineWidth = (.8 + 1.6 * q) * dpr;
+      ax.beginPath(); ax.moveTo(recent[i - 1][0], recent[i - 1][1]); ax.lineTo(recent[i][0], recent[i][1]); ax.stroke();
+    }
+  }
+
+  const ex = cx + a * Math.cos(tau), ey = cy - a * Math.sin(tau), [px, py] = pos(tau);
+  ax.save();
+  ax.shadowColor = 'rgba(200,185,255,.95)'; ax.shadowBlur = 10 * dpr;
+  ax.strokeStyle = 'rgba(255,255,255,.88)'; ax.lineWidth = 1.5 * dpr; ax.lineCap = 'round';
+  ax.beginPath(); ax.moveTo(cx, cy); ax.lineTo(ex, ey); ax.lineTo(px, py); ax.stroke();
+  ax.fillStyle = '#fff'; ax.beginPath(); ax.arc(ex, ey, 2.6 * dpr, 0, TAU); ax.fill();
+  ax.restore();
+  g = ax.createRadialGradient(px, py, 0, px, py, 14 * dpr);
+  g.addColorStop(0, '#fff'); g.addColorStop(.25, 'rgba(220,205,255,.7)'); g.addColorStop(1, 'rgba(150,120,255,0)');
+  ax.fillStyle = g; ax.beginPath(); ax.arc(px, py, 14 * dpr, 0, TAU); ax.fill();
+  ax.globalCompositeOperation = 'source-over';
+}
+
+/* ---------------- the "yes": π slowly becomes 3,14 and the circle closes ---------------- */
+let morph = null;
+function drawMorphFrame(k) {
+  tx.clearRect(0, 0, trail.width, trail.height); styleTrail(.24);
+  const saveK = K; K = k; strokeRange(0, 50 * TAU, .05 / k); K = saveK;
+}
+function drawClosed() {
+  K = 3.14; phi0 = 0; tau = 50 * TAU;
+  tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
+  strokeRange(0, tau, .012 / K);
+  recent = [];
+}
+
+/* ---------------- sound ---------------- */
+const Snd = {
+  ctx: null, on: true, master: null, o2: null,
+  start() {
+    if (this.ctx) return;
+    try {
+      const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+      const c = this.ctx = new C(), now = c.currentTime;
+      const m = this.master = c.createGain(); m.gain.value = 0; m.gain.linearRampToValueAtTime(this.on ? .9 : 0, now + 4);
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400;
+      m.connect(lp); lp.connect(c.destination);
+      const mk = (f, gv) => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f; g.gain.value = gv; o.connect(g); g.connect(m); o.start(); return o; };
+      mk(110, .045); this.o2 = mk(110 * PI, .02); mk(55, .03);
+      const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = .07; lg.gain.value = .25; lfo.connect(lg); lg.connect(m.gain); lfo.start();
+    } catch (e) { this.ctx = null; }
+  },
+  bell(f, when = 0, v = .12) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime + when, o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o2.type = 'triangle'; o.frequency.value = f; o2.frequency.value = f * 2.001;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .015); g.gain.exponentialRampToValueAtTime(.0001, t + 3.2);
+    const g2 = c.createGain(); g2.gain.value = .25; o2.connect(g2); g2.connect(g);
+    o.connect(g); g.connect(this.master); o.start(t); o2.start(t); o.stop(t + 3.3); o2.stop(t + 3.3);
+  },
+  chime(i) { const s = [523.25, 587.33, 659.25, 783.99, 880, 1046.5]; this.bell(s[clamp(i, 0, 5)]); this.bell(s[clamp(i, 0, 5)] * 1.5, .22, .06); },
+  resolve() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime; this.o2.frequency.cancelScheduledValues(t);
+    this.o2.frequency.setValueAtTime(this.o2.frequency.value, t); this.o2.frequency.linearRampToValueAtTime(330, t + 4.5);
+    [261.63, 329.63, 392, 523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.bell(f, 4.3 + i * .16, .1));
+  },
+  toggle() { this.on = !this.on; if (this.master) this.master.gain.setTargetAtTime(this.on ? .9 : 0, this.ctx.currentTime, .2); return this.on; }
+};
+
+/* ---------------- story / UI ---------------- */
+const story = $('#story');
+function caption(html) { story.innerHTML = `<div class="cap">${html}</div>`; }
+
+function updateHeader() {
+  if (phase === 'closed') { $('#counter').innerHTML = L.yesTitle; return; }
+  if (rollTo) return;
+  const held = performance.now() < holdUntil;
+  $('#counter').textContent = L.attempt(held ? completed() : completed() + 1);
+  $('#statline').textContent = best && best.n >= 2 && phase !== 'ask' && phase !== 'morph' ? L.stat(best.n, fmtPct(best.gap)) : '';
+}
+
+function showProbe() {
+  story.innerHTML = `<div id="probe">
+    <div class="q">${L.probeQ}</div>
+    <div class="row"><input id="eps" type="range" min="0" max="100" step="1" value="22" aria-label="${L.probeQ}"><output id="epsOut"></output></div>
+    <div id="probeAns"></div>
+    <div class="btns"><button class="btn gold sm" id="showBtn">${L.show}</button>${data ? `<button class="btn sm" id="nextBtn">${L.next}</button>` : ''}</div>
+  </div>`;
+  const eps = $('#eps'), out = $('#epsOut'), ans = $('#probeAns');
+  let target = null;
+  const upd = () => {
+    const pct = Math.pow(10, -eps.value * .26); // 1% … 10⁻²⁶ %
+    out.textContent = fmtPct(pct / 100);
+    target = RECS.find(r => r.gap * 100 < pct && r.n > 1);
+    ans.innerHTML = target ? L.probeAns(target.n) : L.probeBeyond(RECS[RECS.length - 1].n);
+    if (!target) target = RECS[RECS.length - 1];
+  };
+  eps.oninput = upd; upd();
+  $('#showBtn').onclick = () => warp(target);
+  if (data) $('#nextBtn').onclick = ask;
+}
+
+function warp(rec) {
+  const now = performance.now();
+  holdUntil = now + 1e9;
+  document.body.classList.add('fading');
+  const from = Math.max(1, completed()), to = rec.n, t0 = now, dur = 1500;
+  rollTo = true;
+  const roll = () => {
+    const u = clamp((performance.now() - t0) / dur, 0, 1);
+    const v = Math.round(Math.exp(Math.log(from) + (Math.log(to) - Math.log(from)) * ease(u)));
+    $('#counter').textContent = L.attempt(v);
+    if (u < 1) requestAnimationFrame(roll);
+    else {
+      rollTo = null;
+      nBase = rec.n; dBase = rec.d; phi0 = TAU * rec.d; tau = 0; turns = 0;
+      redrawTrail();
+      document.body.classList.remove('fading');
+      if (!best || rec.gap <= best.gap) best = { n: rec.n, d: rec.d, gap: rec.gap };
+      holdUntil = 0;
+      showLens(rec.n, rec.d, rec.gap);
+      speedFn = () => .45;
+      updateHeader();
+    }
+  };
+  setTimeout(() => requestAnimationFrame(roll), 400);
+}
+
+function ask() {
+  phase = 'ask';
+  speedFn = () => .35;
+  story.innerHTML = '';
+  $('#askFrom').textContent = data.from ? L.asks(data.from) : '';
+  $('#askQ').textContent = data.q || L.defaultQ;
+  $('#askTries').textContent = L.tries(data.n);
+  $('#askHint').textContent = L.hint;
+  $('#yesBtn').textContent = L.yes; $('#noBtn').textContent = L.no;
+  $('#ask').hidden = false;
+  story.style.visibility = 'hidden';
+  document.body.classList.add('asking');
+  lensWrap.classList.remove('on'); lensSt = null; $('#statline').textContent = '';
+}
+
+function sayYes() {
+  document.body.classList.remove('asking'); $('#statline').textContent = '';
+  $('#ask').hidden = true; story.style.visibility = '';
+  phase = 'morph'; lensWrap.classList.remove('on'); lensSt = null;
+  story.innerHTML = '';
+  morph = { start: performance.now(), dur: 4600 };
+  Snd.resolve();
+}
+function finishYes() {
+  morph = null; phase = 'closed'; drawClosed();
+  document.body.classList.add('closed');
+  flashAt = performance.now();
+  try { navigator.vibrate && navigator.vibrate([90, 70, 200]); } catch (e) {}
+  updateHeader();
+  $('#statline').textContent = '';
+  const n = (data ? data.n : 0) + 1;
+  caption(`<span class="big">${L.yesBig}</span>${L.yesSub(n)}${data ? `<div class="btns"><button class="btn gold sm" id="replyBtn">${L.reply}</button></div>` : ''}`);
+  if (data) $('#replyBtn').onclick = () => reply(L.replyYes);
+}
+function sayNo() {
+  document.body.classList.remove('asking');
+  $('#ask').hidden = true; story.style.visibility = '';
+  phase = 'no'; speedFn = () => .3;
+  caption(`<span class="big" style="color:var(--lavender)">${L.noBig}</span>${L.noSub}
+    <div class="btns"><button class="btn sm" id="replyBtn">${L.reply}</button><button class="btn ghost sm" id="changedBtn" style="visibility:hidden">${L.changed}</button></div>`);
+  $('#replyBtn').onclick = () => reply(L.replyNo);
+  setTimeout(() => { const b = $('#changedBtn'); if (b) { b.style.visibility = ''; b.onclick = ask; } }, 9000);
+}
+
+async function reply(text) {
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  copy(text);
+}
+function copy(text) {
+  const done = () => toast(L.copied);
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) {} ta.remove();
+}
+let toastT; function toast(s) { const t = $('#toast'); t.textContent = s; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); }
+
+/* ---------------- builder ---------------- */
+function openBuilder() {
+  $('#builder').hidden = false; $('#intro').hidden = true; $('#ask').hidden = true;
+  if (phase !== 'story') { phase = 'idle'; speedFn = () => .6; }
+}
+function buildLink() {
+  const o = { to: $('#bTo').value.trim(), from: $('#bFrom').value.trim(), q: $('#bQ').value.trim(), n: parseInt($('#bN').value) || 0, l: lang };
+  return location.href.split('#')[0] + '#d=' + encode(o);
+}
+
+function applyLang() {
+  L = T[lang];
+  document.documentElement.lang = lang;
+  document.title = L.title;
+  $('#langBtn').textContent = lang === 'el' ? 'EN' : 'ΕΛ';
+  $('#makeBtn').textContent = L.make;
+  stage.setAttribute('aria-label', L.aria);
+  $('#introFor').textContent = L.for; $('#introTap').textContent = L.tap; $('#introSnd').textContent = '♪ ' + L.snd;
+  $('#bTitle').innerHTML = L.bTitle; $('#bLead').textContent = L.bLead;
+  $('#bToL').textContent = L.bTo; $('#bFromL').textContent = L.bFrom; $('#bQL').textContent = L.bQ; $('#bNL').textContent = L.bN;
+  $('#bQ').placeholder = L.defaultQ;
+  $('#bMake').textContent = L.bMake; $('#bDemo').textContent = L.bDemo; $('#bReady').textContent = L.bReady;
+  $('#bCopy').textContent = L.copy; $('#bShare').textContent = L.share; $('#bPreview').textContent = L.preview;
+  $('#bPrivacy').textContent = L.privacy;
+  if (data && data.to) $('#forline').innerHTML = `${L.for} <b>${esc(data.to)}</b>`;
+  else $('#forline').textContent = phase === 'idle' ? L.title : '';
+  updateHeader();
+}
+
+/* ---------------- start ---------------- */
+function begin() {
+  const intro = $('#intro');
+  intro.classList.add('gone'); setTimeout(() => intro.hidden = true, 1000);
+  Snd.start();
+  reset();
+  phase = 'story';
+  speedFn = () => .3 + Math.min(turns, 14) * .06;
+  caption(L.script[0]);
+}
+function reset() {
+  K = PI; tau = 0; nBase = 0; dBase = 0; phi0 = 0; turns = 0; best = null; holdUntil = 0; recent = [];
+  lensSt = null; lensWrap.classList.remove('on'); flashAt = 0;
+  document.body.classList.remove('closed', 'fading');
+  tx.clearRect(0, 0, trail.width, trail.height); styleTrail();
+  updateHeader();
+}
+
+$('#muteBtn').onclick = () => { Snd.start(); $('#muteBtn').style.opacity = Snd.toggle() ? 1 : .45; };
+$('#langBtn').onclick = () => { lang = lang === 'el' ? 'en' : 'el'; if (data) data.l = lang; applyLang();
+  if (phase === 'ask') ask(); };
+$('#makeBtn').onclick = openBuilder;
+$('#yesBtn').onclick = sayYes;
+$('#noBtn').onclick = sayNo;
+$('#bMake').onclick = () => { const u = buildLink(); $('#bLink').textContent = u; $('#linkOut').hidden = false; };
+$('#bCopy').onclick = () => copy($('#bLink').textContent);
+$('#bShare').onclick = () => { const u = $('#bLink').textContent; navigator.share ? navigator.share({ url: u }).catch(() => {}) : copy(u); };
+$('#bPreview').onclick = () => { location.href = $('#bLink').textContent; };
+$('#bDemo').onclick = () => { location.href = location.href.split('#')[0] + '#d=' + encode({ to: '', from: '', q: '', n: 3, l: lang }); };
+addEventListener('hashchange', () => location.reload());
+addEventListener('resize', () => { clearTimeout(layout.tm); layout.tm = setTimeout(layout, 80); });
+let paused = false;
+document.addEventListener('visibilitychange', () => { paused = document.hidden; last = performance.now(); });
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (morph) {
+    const u = clamp((now - morph.start) / morph.dur, 0, 1);
+    K = PI + (3.14 - PI) * ease(u); phi0 = 0; tau = 50 * TAU * ease(Math.min(1, u * 1.05)); recent = [];
+    drawMorphFrame(K);
+    $('#counter').textContent = 'k = ' + K.toLocaleString(lang === 'el' ? 'el-GR' : 'en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    if (u >= 1) finishYes();
+  } else if (!paused && phase !== 'closed' && phase !== 'pre' && now >= holdUntil && !rollTo) {
+    advance(dt);
+    if (now - (frame.h || 0) > 250) { frame.h = now; updateHeader(); }
+  }
+  drawArms(now);
+  drawLens(now);
+  bx.clearRect(0, 0, bloom.width, bloom.height);
+  bx.drawImage(trail, 0, 0, bloom.width, bloom.height);
+  requestAnimationFrame(frame);
+}
+
+if (data) {
+  phase = 'pre';
+  $('#introName').textContent = data.to || '';
+  if (!data.to) $('#introFor').textContent = '';
+  $('#intro').hidden = false;
+  $('#intro').addEventListener('click', begin, { once: true });
+} else {
+  phase = 'idle';
+  $('#builder').hidden = false;
+}
+applyLang();
+if (!data || !data.to) $('#introFor').textContent = '';
+layout();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
