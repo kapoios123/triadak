@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Δύο νότες</title>
+<meta name="description" content="Από μακριά ακουγόμαστε λάθος. Ίσως από κοντά να έρθει η αρμονία.">
+<meta name="theme-color" content="#07040f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07040f; --violet:#8f72ff; --lavender:#c9bcff; --gold:#f3cf7a;
+    --text:#efeaff; --muted:#a197cc; --glass:rgba(255,255,255,.06); --line:rgba(201,188,255,.2);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text)}
+  body{font-family:var(--serif);display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;
+    background:radial-gradient(ellipse 80% 60% at 50% 42%,#150c2e 0%,#0b0619 55%,#07040f 100%);
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;font-variant-numeric:lining-nums}
+  [hidden]{display:none!important}
+
+  header{position:relative;z-index:3;text-align:center;padding:max(18px,env(safe-area-inset-top)) 16px 0;min-height:92px}
+  #forline{font-style:italic;color:var(--gold);font-size:clamp(19px,4vw,24px);min-height:1.2em;letter-spacing:.03em;font-weight:500;
+    text-shadow:0 0 16px rgba(243,207,122,.45)}
+  h1{margin:0;font-weight:500;line-height:1.1;font-size:clamp(32px,7vw,54px);min-height:1.1em;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums lining-nums;transition:text-shadow 1s}
+  h1 .me{color:var(--lavender);text-shadow:0 0 22px rgba(143,114,255,.6)}
+  h1 .sep{color:var(--muted);font-weight:400;margin:0 .18em}
+  h1 .you{color:var(--gold);text-shadow:0 0 22px rgba(243,207,122,.55)}
+  h1 .dec{opacity:.55;font-size:.62em}
+  h1.locked .you,h1.locked .me{color:var(--gold);text-shadow:0 0 30px rgba(243,207,122,.9)}
+  #statline{font-family:var(--sans);font-size:12.5px;color:var(--muted);letter-spacing:.03em;margin-top:3px;min-height:1.3em}
+  #statline b{font-weight:600}
+  #statline .m{color:var(--lavender)} #statline .y{color:var(--gold)}
+
+  #stage{position:relative;flex:1;min-height:0;z-index:1}
+  #stage>canvas{position:absolute;inset:0;width:100%;height:100%}
+  #bloom{filter:blur(7px);opacity:.75;mix-blend-mode:screen}
+  #scope,#ui{mix-blend-mode:screen}
+
+  #story{position:relative;z-index:3;text-align:center;padding:4px 18px 4px;min-height:112px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;font-style:italic;color:var(--text);font-size:clamp(19px,3.8vw,24px);line-height:1.32}
+  #story b{color:var(--gold);font-weight:500}
+  #story small{display:block;margin-top:5px;font-family:var(--sans);font-style:normal;font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+  .cap{max-width:620px;animation:rise 1.4s ease both}
+  .big{display:block;font-size:clamp(34px,7.5vw,54px);color:var(--gold);font-weight:500;text-shadow:0 0 26px rgba(243,207,122,.5)}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+
+  .btn{appearance:none;border:1px solid var(--line);background:var(--glass);color:var(--text);cursor:pointer;
+    height:40px;padding:0 18px;border-radius:999px;font:600 14px var(--sans);letter-spacing:.02em;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .2s,transform .15s}
+  .btn:hover{background:rgba(255,255,255,.11)}
+  .btn:active{transform:scale(.97)}
+  .btn.gold{background:linear-gradient(180deg,#f7dc96,#e8b95a);color:#2a1a05;border-color:transparent;box-shadow:0 0 24px rgba(243,207,122,.45)}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted);font-weight:500}
+  .btn.sm{height:34px;padding:0 14px;font-size:13px}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--lavender);outline-offset:2px}
+  .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+
+  footer{position:relative;z-index:3;display:flex;gap:8px;justify-content:center;align-items:center;
+    padding:4px 16px max(12px,env(safe-area-inset-bottom))}
+  .icon{appearance:none;border:1px solid var(--line);background:var(--glass);color:var(--text);cursor:pointer;
+    height:34px;min-width:34px;padding:0 12px;border-radius:999px;font:600 12.5px var(--sans);letter-spacing:.04em}
+
+  .overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:20px;overflow:auto}
+  #intro{background:radial-gradient(ellipse at center,rgba(20,10,45,.6),rgba(5,3,12,.93));cursor:pointer;text-align:center;transition:opacity 1.2s}
+  #intro.gone{opacity:0;pointer-events:none}
+  #intro .name{font-size:clamp(46px,12vw,88px);font-style:italic;font-weight:500;color:var(--gold);text-shadow:0 0 34px rgba(243,207,122,.5);line-height:1.05;margin:0 0 .3em}
+  #intro .tap{font-family:var(--sans);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--lavender);animation:breathe 2.4s ease-in-out infinite}
+  #intro .snd{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:12px}
+  @keyframes breathe{50%{opacity:.35}}
+
+  .card{width:min(540px,100%);background:rgba(16,10,34,.8);border:1px solid var(--line);border-radius:22px;padding:22px 22px 18px;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 60px rgba(143,114,255,.18);
+    animation:rise 1s ease both;text-align:center}
+  #ask{position:fixed;left:16px;right:16px;margin:0 auto;bottom:max(16px,env(safe-area-inset-bottom));z-index:9;width:auto;max-width:540px}
+  .asking footer{visibility:hidden}
+  #ask .from{font-style:italic;color:var(--muted);font-size:19px}
+  #ask .question{font-size:clamp(30px,7vw,44px);font-weight:500;font-style:italic;line-height:1.12;margin:.15em 0 .2em;color:#fff;text-shadow:0 0 24px rgba(201,188,255,.4)}
+  #ask .tries{font-family:var(--sans);font-size:13px;color:var(--lavender);letter-spacing:.02em}
+  #ask .hint{font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:10px}
+
+  #builder{background:rgba(5,3,12,.6)}
+  #builder .card{text-align:left}
+  #builder h2{margin:0;font-weight:500;font-style:italic;font-size:clamp(30px,6vw,40px);line-height:1.1}
+  #builder h2 span{color:var(--gold)}
+  #builder p.lead{margin:.4em 0 1em;color:var(--muted);font-style:italic;font-size:18px;line-height:1.35}
+  .field{display:block;margin:10px 0;font-family:var(--sans);font-size:12.5px;color:var(--lavender);letter-spacing:.03em}
+  .field input,.field textarea{display:block;width:100%;margin-top:5px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;
+    color:var(--text);font:500 19px var(--serif);padding:9px 12px;resize:none}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #linkOut{margin-top:14px;font-family:var(--sans);font-size:12.5px;color:var(--muted)}
+  #linkOut code{display:block;word-break:break-all;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;color:var(--lavender);font-size:11.5px;max-height:70px;overflow:auto}
+  .privacy{font-family:var(--sans);font-size:11.5px;color:var(--muted);margin-top:12px;opacity:.85}
+  #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:20;background:rgba(30,20,60,.95);border:1px solid var(--line);
+    padding:8px 16px;border-radius:999px;font:500 13px var(--sans);opacity:0;transition:opacity .3s;pointer-events:none}
+  #toast.on{opacity:1}
+  @media (max-width:420px){ .two{grid-template-columns:1fr} #story{min-height:128px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div id="forline"></div>
+  <h1 id="ratio"></h1>
+  <div id="statline"></div>
+</header>
+
+<div id="stage" role="img">
+  <canvas id="bloom"></canvas>
+  <canvas id="scope"></canvas>
+  <canvas id="ui"></canvas>
+</div>
+
+<div id="story" aria-live="polite"></div>
+
+<footer>
+  <button class="icon" id="muteBtn" aria-label="sound">♪</button>
+  <button class="icon" id="langBtn">EN</button>
+  <button class="icon" id="makeBtn"></button>
+</footer>
+
+<div id="intro" class="overlay" hidden>
+  <div>
+    <div class="name" id="introName"></div>
+    <div class="tap" id="introTap"></div>
+    <div class="snd" id="introSnd"></div>
+  </div>
+</div>
+
+<div id="ask" class="card" hidden>
+  <div class="from" id="askFrom"></div>
+  <div class="question" id="askQ"></div>
+  <div class="tries" id="askTries"></div>
+  <div class="btns">
+    <button class="btn gold" id="yesBtn"></button>
+    <button class="btn" id="noBtn"></button>
+  </div>
+  <div class="hint" id="askHint"></div>
+</div>
+
+<div id="builder" class="overlay" hidden>
+  <div class="card">
+    <h2 id="bTitle"></h2>
+    <p class="lead" id="bLead"></p>
+    <div class="two">
+      <label class="field"><span id="bToL"></span><input id="bTo" maxlength="40" autocomplete="off"></label>
+      <label class="field"><span id="bFromL"></span><input id="bFrom" maxlength="40" autocomplete="off"></label>
+    </div>
+    <label class="field"><span id="bQL"></span><textarea id="bQ" rows="2" maxlength="140"></textarea></label>
+    <label class="field"><span id="bNL"></span><input id="bN" type="number" min="0" max="9999" value="0" inputmode="numeric"></label>
+    <div class="btns" style="justify-content:flex-start">
+      <button class="btn gold" id="bMake"></button>
+      <button class="btn ghost" id="bDemo"></button>
+    </div>
+    <div id="linkOut" hidden>
+      <span id="bReady"></span>
+      <code id="bLink"></code>
+      <div class="btns" style="justify-content:flex-start;margin-top:4px">
+        <button class="btn sm" id="bCopy"></button>
+        <button class="btn sm" id="bShare"></button>
+        <button class="btn sm" id="bPreview"></button>
+      </div>
+    </div>
+    <div class="privacy" id="bPrivacy"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+/* Two notes. Mine moves the picture left–right, yours moves it up–down: what you see is the sound itself
+   (an oscilloscope in X–Y mode draws exactly this, a Lissajous figure).
+   Two notes sound together sweetly when their frequencies make a simple fraction; 3 : 2 is the perfect fifth.
+   Slightly off that, the harmonics rub against each other and the sound trembles (beats at 440·d Hz here),
+   and the picture never settles. On "yes" her note slides to exactly 3 : 2: the trembling slows, stops, the figure locks,
+   and a third note (5 : 4) joins to make a just major chord — 4 : 5 : 6 — drawn as a closed 3-D knot. */
+const TAU = Math.PI * 2, PI = Math.PI;
+const $ = s => document.querySelector(s);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+const qs = new URLSearchParams(location.search);
+const SPEED = clamp(parseFloat(qs.get('speed')) || 1, .1, 30);   // testing only
+
+const F_ME = 220;          // my note, A3
+const VIS_HZ = .9;         // how fast the picture is traced (my note, slowed down so the eye can follow)
+const K_VIS = 3;           // the picture exaggerates the detuning a little so you can see what you hear
+const PSI_T = PI / 2;      // the shape of the fifth when it locks
+const CHI = .9;            // phase of the third note in the knot
+
+/* ---------------- text ---------------- */
+const T = {
+  el: {
+    title: 'Δύο νότες',
+    me: 'εγώ', you: 'εσύ',
+    tap: 'άγγιξε για να ακούσεις', snd: '🎧 άνοιξε τον ήχο — ο ήχος είναι η ιστορία',
+    script: {
+      me: 'Αυτός είμαι <b>εγώ</b>. Μία νότα.<small>κινεί την εικόνα δεξιά – αριστερά</small>',
+      you: 'Κι αυτή είσαι <b>εσύ</b>. Μια άλλη νότα.<small>κινεί την εικόνα πάνω – κάτω</small>',
+      together: 'Όταν ακουγόμαστε μαζί, ζωγραφίζουμε.<small>η εικόνα είναι ο ίδιος ο ήχος μας</small>',
+      wrong: 'Και κάπως… <b>ακουγόμαστε λάθος.</b><small>άκου πώς τρέμει · η εικόνα δεν ησυχάζει ποτέ</small>',
+      fault: 'Δεν φταίει η δική σου νότα.<br>Ούτε η δική μου.',
+      far: 'Απλώς είμαστε μακριά —<br>ο καθένας στον δικό του ρυθμό.',
+      almost: 'Κάποιες στιγμές, <b>σχεδόν</b> ταιριάζουμε…<small>άκου: το τρέμουλο αραιώνει</small>',
+      lost: '…και μετά, πάλι χανόμαστε.',
+      pyth: 'Δύο νότες δένουν όταν οι ρυθμοί τους κάνουν <b>απλό κλάσμα</b>.<br>Δύο προς τρία: η πιο γλυκιά αρμονία.<small>κατά την παράδοση, το βρήκε ο Πυθαγόρας · αυτό το σχήμα θα είμαστε</small>',
+      fromFar: 'Από μακριά, δεν τη βρίσκουμε.',
+      maybe: 'Ίσως αν βρεθούμε κάπου… να έρθει η αρμονία.<br><b>Να τα βρούμε.</b>'
+    },
+    asks: f => `${f} ρωτάει:`, defaultQ: 'Θα βγεις μαζί μου;',
+    tries: n => n > 0 ? `Είναι η ${n + 1}η φορά που ρωτάω.` : 'Πρώτη φορά που ρωτάω.',
+    hint: 'ένα «ναι» — και ίσως, από κοντά, ακουστούμε σωστά',
+    yes: 'Ναι', no: 'Όχι ακόμα',
+    listen: 'Άκου…<small>όσο πλησιάζουμε, το τρέμουλο αραιώνει</small>',
+    yesBig: 'Ακουγόμαστε σωστά.',
+    yesSub: 'τα βρήκαμε · 2 : 3',
+    noBig: 'Εντάξει.', noSub: 'Η νότα μου θα μείνει εδώ, ήσυχα, χωρίς βιασύνη.<small>όποτε θες, ακούγεται</small>',
+    reply: 'Στείλε την απάντηση', changed: 'άλλαξα γνώμη',
+    replyYes: 'Ναι. Ας ακουστούμε σωστά. 🎵', replyNo: 'Όχι ακόμα.',
+    make: '✎ φτιάξε το δικό σου',
+    bTitle: 'Δύο <span>νότες</span>',
+    bLead: 'Φτιάξε έναν σύνδεσμο. Δύο νότες: η δική σου και του ατόμου που τον ανοίγει. Από μακριά ακούγονται λάθος· στο τέλος, η ερώτησή σου — κι ένα «ναι» τις κάνει αρμονία.',
+    bTo: 'Για (όνομα)', bFrom: 'Από (το δικό σου)', bQ: 'Η ερώτηση', bN: 'Πόσες φορές έχεις ήδη ρωτήσει;',
+    bMake: 'Φτιάξε τον σύνδεσμο', bDemo: 'δες ένα παράδειγμα',
+    bReady: 'Έτοιμο. Στείλ’ το:', copy: 'Αντιγραφή', share: 'Κοινοποίηση', preview: 'Προεπισκόπηση',
+    copied: 'Αντιγράφηκε', privacy: 'Τίποτα δεν αποθηκεύεται πουθενά — τα ονόματα και η ερώτηση ζουν μόνο μέσα στον σύνδεσμο.',
+    aria: 'Δύο νότες ζωγραφίζουν μαζί ένα σχήμα που δεν ησυχάζει, μέχρι να ταιριάξουν'
+  },
+  en: {
+    title: 'Two notes',
+    me: 'me', you: 'you',
+    tap: 'tap to listen', snd: '🎧 turn the sound on — the sound is the story',
+    script: {
+      me: 'This is <b>me</b>. One note.<small>it moves the picture left – right</small>',
+      you: 'And this is <b>you</b>. Another note.<small>it moves the picture up – down</small>',
+      together: 'When we sound together, we draw.<small>the picture is our sound itself</small>',
+      wrong: 'And somehow… <b>we sound wrong.</b><small>hear it tremble · the picture never settles</small>',
+      fault: 'It’s not your note’s fault.<br>Nor mine.',
+      far: 'We’re just far apart —<br>each in our own rhythm.',
+      almost: 'Some moments, we <b>almost</b> match…<small>listen: the trembling slows</small>',
+      lost: '…and then we drift apart again.',
+      pyth: 'Two notes bind when their rhythms make a <b>simple fraction</b>.<br>Two to three: the sweetest harmony there is.<small>Pythagoras found it, the story goes · this shape would be us</small>',
+      fromFar: 'From far away, we can’t find it.',
+      maybe: 'Maybe if we meet somewhere… harmony will come.<br><b>Maybe we’ll find it.</b>'
+    },
+    asks: f => `${f} is asking:`, defaultQ: 'Will you go out with me?',
+    tries: n => n > 0 ? `This is time number ${n + 1} I ask.` : 'The first time I ask.',
+    hint: 'one “yes” — and maybe, up close, we’ll sound right',
+    yes: 'Yes', no: 'Not yet',
+    listen: 'Listen…<small>the closer we get, the slower the trembling</small>',
+    yesBig: 'We sound right.',
+    yesSub: 'we found it · 2 : 3',
+    noBig: 'Okay.', noSub: 'My note will stay here, quietly, no rush.<small>whenever you want, it’s playing</small>',
+    reply: 'Send your answer', changed: 'I changed my mind',
+    replyYes: 'Yes. Let’s sound right. 🎵', replyNo: 'Not yet.',
+    make: '✎ make your own',
+    bTitle: 'Two <span>notes</span>',
+    bLead: 'Make a link. Two notes: yours, and the person who opens it. From afar they sound wrong; at the end, your question — and one “yes” turns them into harmony.',
+    bTo: 'For (name)', bFrom: 'From (yours)', bQ: 'Your question', bN: 'How many times have you asked already?',
+    bMake: 'Make the link', bDemo: 'see an example',
+    bReady: 'Ready. Send it:', copy: 'Copy', share: 'Share', preview: 'Preview',
+    copied: 'Copied', privacy: 'Nothing is stored anywhere — the names and the question live only inside the link.',
+    aria: 'Two notes draw a shape together that never settles, until they match'
+  }
+};
+
+/* ---------------- link data (lives in the #fragment, never sent to a server) ---------------- */
+function encode(o) {
+  const b = new TextEncoder().encode(JSON.stringify(o));
+  let s = ''; b.forEach(c => s += String.fromCharCode(c));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function decode(str) {
+  try {
+    const s = atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+    const o = JSON.parse(new TextDecoder().decode(Uint8Array.from(s, c => c.charCodeAt(0))));
+    return {
+      to: String(o.to || '').slice(0, 40), from: String(o.from || '').slice(0, 40),
+      q: String(o.q || '').slice(0, 140), n: clamp(parseInt(o.n) || 0, 0, 9999), l: o.l === 'en' ? 'en' : 'el'
+    };
+  } catch (e) { return null; }
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const data = location.hash.startsWith('#d=') ? decode(location.hash.slice(3)) : null;
+let lang = data ? data.l : (qs.get('lang') === 'en' ? 'en' : 'el');
+let L = T[lang];
+const caps = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();   // Greek capitals drop their accents
+const dec = (v, k) => { const s = v.toFixed(k); return lang === 'el' ? s.replace('.', ',') : s; };
+
+/* ---------------- sound ---------------- */
+const Snd = (() => {
+  let ctx = null, master, wet, wave, on = true, vA, vB, vC, vS;
+  const imag = new Float32Array([0, 1, .5, .33, .2, .12, .07, .04]);
+  function impulse(sec) {
+    const len = Math.round(ctx.sampleRate * sec), b = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const a = b.getChannelData(ch); for (let i = 0; i < len; i++) a[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.8); }
+    return b;
+  }
+  function voice(f, pan) {
+    const o = ctx.createOscillator(); o.setPeriodicWave(wave); o.frequency.value = f;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400; lp.Q.value = .4;
+    const g = ctx.createGain(); g.gain.value = 0;
+    o.connect(lp); lp.connect(g);
+    let out = g, p = null;
+    if (ctx.createStereoPanner) { p = ctx.createStereoPanner(); p.pan.value = pan; g.connect(p); out = p; }
+    out.connect(master); out.connect(wet);
+    o.start();
+    return { o, g, p };
+  }
+  return {
+    start() {
+      if (ctx) { if (ctx.state !== 'running') ctx.resume(); return; }
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}   // iPhone: play even on silent
+      ctx = new AC();
+      const comp = ctx.createDynamicsCompressor(); comp.connect(ctx.destination);
+      master = ctx.createGain(); master.gain.value = on ? 1 : 0; master.connect(comp);
+      wet = ctx.createConvolver(); wet.buffer = impulse(3.2);
+      const wg = ctx.createGain(); wg.gain.value = .32; wet.connect(wg); wg.connect(master);
+      wave = ctx.createPeriodicWave(new Float32Array(imag.length), imag);
+      vA = voice(F_ME, -.4); vB = voice(F_ME * 1.55, .4); vC = voice(F_ME * 5 / 4, 0); vS = voice(F_ME / 2, 0);
+    },
+    update(fb, ga, gb, pan) {
+      if (!ctx) return; const t = ctx.currentTime;
+      vB.o.frequency.setTargetAtTime(fb, t, .03);
+      vA.g.gain.setTargetAtTime(ga, t, .08); vB.g.gain.setTargetAtTime(gb, t, .08);
+      if (vA.p) { vA.p.pan.setTargetAtTime(-pan, t, .3); vB.p.pan.setTargetAtTime(pan, t, .3); }
+    },
+    chord(g) {
+      if (!ctx) return; const t = ctx.currentTime;
+      vC.g.gain.setTargetAtTime(g * .075, t, 1.4); vS.g.gain.setTargetAtTime(g * .06, t, 1.8);
+    },
+    bells() {
+      if (!ctx) return; const t0 = ctx.currentTime + .05;
+      [440, 550, 660, 880].forEach((f, i) => {
+        const t = t0 + i * .17;
+        [[f, .07], [f * 2, .025]].forEach(([fq, a]) => {
+          const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = fq;
+          g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + 3.2);
+          o.connect(g); g.connect(master); g.connect(wet); o.start(t); o.stop(t + 3.3);
+        });
+      });
+    },
+    suspend(s) { if (ctx) s ? ctx.suspend() : ctx.resume(); },
+    toggle() { on = !on; if (ctx) master.gain.setTargetAtTime(on ? 1 : 0, ctx.currentTime, .05); return on; }
+  };
+})();
+
+/* ---------------- canvases ---------------- */
+const stage = $('#stage'), scope = $('#scope'), ui = $('#ui'), bloom = $('#bloom'), story = $('#story');
+const sx = scope.getContext('2d'), ux = ui.getContext('2d'), bx = bloom.getContext('2d');
+let dpr = 1, SW = 0, SH = 0, ox = 0, oy = 0, half = 1;
+function layout() {
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  const r = stage.getBoundingClientRect(); SW = r.width; SH = r.height;
+  [scope, ui].forEach(c => { c.width = Math.max(1, Math.round(SW * dpr)); c.height = Math.max(1, Math.round(SH * dpr)); });
+  bloom.width = Math.max(1, Math.round(SW * dpr / 4)); bloom.height = Math.max(1, Math.round(SH * dpr / 4));
+  const rail = 30, pad = 8;
+  const side = Math.max(90, Math.min(SW - 2 * rail - 2 * pad, SH - rail - 2 * pad));
+  ox = SW / 2; oy = pad + (SH - rail - 2 * pad) / 2;
+  half = side / 2 * .94;
+}
+const PX = x => ox + x * half, PY = y => oy - y * half;
+
+/* ---------------- state ---------------- */
+let phase = 'idle';          // idle · pre · story · ask · finale · no
+let clock = 0, st = 0;       // clock: visual seconds; st: story seconds
+let thA = 0, thB = 0, d = .06, beatPh = 0;
+let ax = 1, ay = 1, axT = 1, ayT = 1, vol = 0, volT = 0, ghost = 0, ghostT = 0;
+let fin = null, locked = false, psiLock = 0, zAmp = 0, rot = 0, rotV = 0, knot = 0, flash = 0;
+const hx = [], hy = [], ht = []; let h0 = 0;
+
+/* her note wanders around the fifth but never lands on it */
+const wander = t => .052 + .016 * Math.sin(.63 * t) + .009 * Math.sin(1.71 * t + 1.3);
+function dStory(t) {
+  const w = wander(t), near = .0042;
+  let k = 0;
+  if (t >= 40.5 && t < 47) k = ease((t - 40.5) / 6.5);
+  else if (t >= 47 && t < 51) k = 1;
+  else if (t >= 51 && t < 56) k = 1 - ease((t - 51) / 5);
+  return w + (near - w) * k;
+}
+const harmony = () => locked ? 1 : Math.exp(-Math.abs(d) / .007);
+
+/* ---------------- story ---------------- */
+const SCRIPT = [
+  [0, () => { axT = 1; ayT = 0; caption(L.script.me); }],
+  [6.5, () => { axT = 0; ayT = 1; caption(L.script.you); }],
+  [13, () => { axT = 1; ayT = 1; caption(L.script.together); }],
+  [21, () => caption(L.script.wrong)],
+  [28, () => caption(L.script.fault)],
+  [34, () => caption(L.script.far)],
+  [40.5, () => caption(L.script.almost)],
+  [51.5, () => caption(L.script.lost)],
+  [57, () => { ghostT = .55; caption(L.script.pyth); }],
+  [66, () => caption(L.script.fromFar)],
+  [71.5, () => caption(L.script.maybe)],
+  [80, () => ask()]
+];
+let scriptI = 0;
+function caption(html) { story.innerHTML = `<div class="cap">${html}</div>`; }
+
+function ask() {
+  phase = 'ask'; volT = .8; ghostT = .5;
+  story.innerHTML = ''; story.style.visibility = 'hidden';
+  $('#askFrom').textContent = data && data.from ? L.asks(data.from) : '';
+  $('#askQ').textContent = (data && data.q) || L.defaultQ;
+  $('#askTries').textContent = L.tries(data ? data.n : 0);
+  $('#askHint').textContent = L.hint;
+  $('#yesBtn').textContent = L.yes; $('#noBtn').textContent = L.no;
+  $('#ask').hidden = false;
+  document.body.classList.add('asking');
+}
+function sayYes() {
+  document.body.classList.remove('asking');
+  $('#ask').hidden = true; story.style.visibility = '';
+  story.innerHTML = '';
+  phase = 'finale'; volT = 1; axT = ayT = 1;
+  fin = { t: 0, d0: d, said: 0 };
+}
+function lock() {
+  locked = true; d = 0;
+  psiLock = PSI_T + PI * Math.round((thB - 1.5 * thA - PSI_T) / PI);
+  thB = 1.5 * thA + psiLock;
+  flash = 1; ghostT = 0;
+  Snd.bells();
+  try { navigator.vibrate && navigator.vibrate([40, 70, 40, 70, 160]); } catch (e) {}
+  caption(`<span class="big">${L.yesBig}</span>`);
+  $('#ratio').classList.add('locked');
+}
+function finaleStep(dt) {
+  fin.t += dt; const t = fin.t;
+  if (!locked) {
+    const u = clamp((t - .8) / 6.2, 0, 1);
+    d = fin.d0 * Math.pow(1 - u, 2.4);
+    // the two rhythms fall into step: her phase is drawn gently towards the shape of the fifth
+    if (u > 0) { const x = thB - 1.5 * thA - PSI_T, e = x - PI * Math.round(x / PI); thB -= e * (1 - Math.exp(-4 * u * u * dt)); }
+    if (fin.said < 1 && t > .6) { fin.said = 1; caption(L.listen); }
+    if (u >= 1) lock();
+  } else {
+    if (t > 9) { zAmp = Math.min(1, zAmp + dt / 4); rotV = Math.min(.22, rotV + dt * .05); knot = Math.min(1, knot + dt / 2); Snd.chord(1); }
+    if (fin.said < 2 && t > 11.5) {
+      fin.said = 2;
+      caption(`<span class="big">${L.yesBig}</span>${L.yesSub}${data ? `<div class="btns"><button class="btn gold sm" id="replyBtn">${L.reply}</button></div>` : ''}`);
+      if (data) $('#replyBtn').onclick = () => reply(L.replyYes);
+    }
+  }
+}
+function sayNo() {
+  document.body.classList.remove('asking');
+  $('#ask').hidden = true; story.style.visibility = '';
+  phase = 'no'; volT = .55; ghostT = .18;
+  caption(`<span class="big" style="color:var(--lavender)">${L.noBig}</span>${L.noSub}
+    <div class="btns"><button class="btn sm" id="replyBtn">${L.reply}</button><button class="btn ghost sm" id="changedBtn" style="visibility:hidden">${L.changed}</button></div>`);
+  $('#replyBtn').onclick = () => reply(L.replyNo);
+  setTimeout(() => { const b = $('#changedBtn'); if (b) { b.style.visibility = ''; b.onclick = ask; } }, 9000);
+}
+
+async function reply(text) {
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  copy(text);
+}
+function copy(text) {
+  const done = () => toast(L.copied);
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) {} ta.remove();
+}
+let toastT; function toast(s) { const t = $('#toast'); t.textContent = s; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); }
+
+/* ---------------- motion ---------------- */
+function integrate(dt) {
+  const dA = TAU * VIS_HZ * dt, n = Math.max(1, Math.ceil(dA / .02));
+  const dB = locked ? 0 : TAU * VIS_HZ * (1.5 + K_VIS * d) * dt;
+  for (let i = 0; i < n; i++) {
+    thA += dA / n;
+    if (locked) thB = 1.5 * thA + psiLock; else thB += dB / n;
+    hx.push(ax * Math.sin(thA)); hy.push(ay * Math.sin(thB)); ht.push(clock - dt + dt * (i + 1) / n);
+  }
+  const keep = 2.6 + 2 * harmony();
+  while (h0 < ht.length - 2 && clock - ht[h0] > keep) h0++;
+  if (h0 > 6000) { hx.splice(0, h0); hy.splice(0, h0); ht.splice(0, h0); h0 = 0; }
+}
+
+/* ---------------- drawing ---------------- */
+const VIO = [176, 158, 255], GOLD = [243, 207, 122];
+const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+function warmth() {
+  const both = Math.min(ax, ay);
+  return clamp(ay * (1 - ax) + both * (.18 + .82 * harmony()), 0, 1);
+}
+function beatBright(rdt) {
+  const hz = 440 * Math.abs(d);
+  beatPh += TAU * hz * rdt;
+  const m = .55 * clamp(1 - hz / 9, 0, 1) * Math.min(ax, ay) * (locked ? 0 : 1);
+  return 1 - m * (.5 - .5 * Math.cos(beatPh));
+}
+
+function drawScope(B) {
+  sx.setTransform(1, 0, 0, 1, 0, 0); sx.clearRect(0, 0, scope.width, scope.height);
+  sx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sx.globalCompositeOperation = 'lighter'; sx.lineJoin = sx.lineCap = 'round';
+  const col = mix(VIO, GOLD, warmth()), core = mix(col, [255, 255, 255], .35);
+  const histA = 1 - knot;
+  const total = ht.length - h0, keep = 2.6 + 2 * harmony();
+  if (histA > .01 && total > 2) {
+    const NB = 30, per = Math.ceil(total / NB);
+    for (let b = 0; b < NB; b++) {
+      const i0 = h0 + b * per, i1 = Math.min(ht.length - 1, i0 + per);
+      if (i1 <= i0) break;
+      const age = clock - ht[(i0 + i1) >> 1];
+      const a = Math.pow(clamp(1 - age / keep, 0, 1), 1.5) * histA * B;
+      if (a < .01) continue;
+      const p = new Path2D(); p.moveTo(PX(hx[i0]), PY(hy[i0]));
+      for (let i = i0 + 1; i <= i1; i++) p.lineTo(PX(hx[i]), PY(hy[i]));
+      sx.strokeStyle = rgba(col, .1 * a); sx.lineWidth = 7; sx.stroke(p);
+      sx.strokeStyle = rgba(core, .85 * a); sx.lineWidth = 1.7; sx.stroke(p);
+    }
+  }
+  if (knot > .01) drawKnot(knot);
+  sx.globalCompositeOperation = 'source-over';
+}
+
+/* x = me, y = you, z = the third note; seen head-on it is exactly the locked fifth, then it turns */
+function knotPt(th) {
+  const x = Math.sin(th), y = Math.sin(1.5 * th + psiLock), z = zAmp * Math.sin(1.25 * th + CHI);
+  const c = Math.cos(rot), s = Math.sin(rot);
+  const X = x * c + z * s, D = -x * s + z * c;
+  const sc = 1 / (1 + .45 * zAmp), per = 1 / (1 - .12 * D);
+  return [X * sc * per, y * sc * per, D];
+}
+function drawKnot(alpha) {
+  const N = 1100, span = 8 * PI, LV = 8;
+  const paths = Array.from({ length: LV }, () => new Path2D());
+  let p = knotPt(thA - span);
+  for (let i = 1; i <= N; i++) {
+    const q = knotPt(thA - span + span * i / N);
+    const lv = clamp(Math.floor(((p[2] + q[2]) / 2 + 1.4) / 2.8 * LV), 0, LV - 1);
+    paths[lv].moveTo(PX(p[0]), PY(p[1])); paths[lv].lineTo(PX(q[0]), PY(q[1]));
+    p = q;
+  }
+  for (let lv = 0; lv < LV; lv++) {
+    const a = alpha * (.28 + .72 * lv / (LV - 1));
+    sx.strokeStyle = rgba(GOLD, .1 * a); sx.lineWidth = 7; sx.stroke(paths[lv]);
+    sx.strokeStyle = rgba([255, 236, 190], .8 * a); sx.lineWidth = 1.6; sx.stroke(paths[lv]);
+  }
+}
+
+function headPos() {
+  if (knot > .01) { const k = knotPt(thA); return [k[0], k[1]]; }
+  return [ax * Math.sin(thA), ay * Math.sin(thB)];
+}
+
+function drawUI() {
+  ux.setTransform(1, 0, 0, 1, 0, 0); ux.clearRect(0, 0, ui.width, ui.height);
+  ux.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const Lx = PX(-1), Rx = PX(1), Ty = PY(1), By = PY(-1);
+  const railA = 1 - knot;
+  // graticule, like the screen of an oscilloscope
+  ux.strokeStyle = 'rgba(201,188,255,.07)'; ux.lineWidth = 1;
+  ux.strokeRect(Lx, Ty, Rx - Lx, By - Ty);
+  ux.setLineDash([2, 6]);
+  ux.beginPath(); ux.moveTo(ox, Ty); ux.lineTo(ox, By); ux.moveTo(Lx, oy); ux.lineTo(Rx, oy); ux.stroke();
+  ux.setLineDash([]);
+  // the shape we would make in harmony
+  if (ghost > .005) {
+    ux.beginPath();
+    for (let i = 0; i <= 600; i++) { const th = 4 * PI * i / 600; const x = PX(Math.sin(th)), y = PY(Math.sin(1.5 * th + PSI_T)); i ? ux.lineTo(x, y) : ux.moveTo(x, y); }
+    ux.strokeStyle = rgba(GOLD, .6 * ghost); ux.lineWidth = 1.3; ux.setLineDash([2, 5]); ux.stroke(); ux.setLineDash([]);
+  }
+  const [hxp, hyp] = headPos(), X = PX(hxp), Y = PY(hyp);
+  if (railA > .01) {
+    const ry = By + 17, rx = Lx - 17;
+    ux.globalAlpha = railA;
+    ux.strokeStyle = 'rgba(201,188,255,.22)';
+    ux.beginPath(); ux.moveTo(Lx, ry); ux.lineTo(Rx, ry); ux.moveTo(rx, Ty); ux.lineTo(rx, By); ux.stroke();
+    // guides: every point of the picture is my sound and yours at the same instant
+    ux.setLineDash([2, 4]);
+    if (ax > .05) { ux.strokeStyle = rgba(VIO, .22 * ax); ux.beginPath(); ux.moveTo(X, ry); ux.lineTo(X, Y); ux.stroke(); }
+    if (ay > .05) { ux.strokeStyle = rgba(GOLD, .22 * ay); ux.beginPath(); ux.moveTo(rx, Y); ux.lineTo(X, Y); ux.stroke(); }
+    ux.setLineDash([]);
+    dot(PX(ax * Math.sin(thA)), ry, VIO, .35 + .65 * ax, 4);
+    dot(rx, PY(ay * Math.sin(thB)), GOLD, .35 + .65 * ay, 4);
+    ux.font = '600 10.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+    ux.textBaseline = 'top'; ux.textAlign = 'right'; ux.fillStyle = rgba(VIO, .8); ux.fillText(caps(L.me), Rx, ry + 7);
+    ux.textBaseline = 'bottom'; ux.textAlign = 'center'; ux.fillStyle = rgba(GOLD, .85); ux.fillText(caps(L.you), rx, Ty - 6);
+    ux.globalAlpha = 1;
+  }
+  // the moving point: where my sound and yours meet right now
+  const warm = locked ? 1 : warmth();
+  dot(X, Y, mix(VIO, GOLD, warm), 1, 3.2, true);
+  if (flash > .01) {
+    const r = half * (1.25 - .55 * flash), g = ux.createRadialGradient(ox, oy, 0, ox, oy, r);
+    g.addColorStop(0, rgba(GOLD, .5 * flash)); g.addColorStop(1, rgba(GOLD, 0));
+    ux.fillStyle = g; ux.fillRect(ox - r, oy - r, 2 * r, 2 * r);
+  }
+}
+function dot(x, y, c, a, r, core) {
+  const g = ux.createRadialGradient(x, y, 0, x, y, r * 5);
+  g.addColorStop(0, rgba(c, .55 * a)); g.addColorStop(1, rgba(c, 0));
+  ux.fillStyle = g; ux.beginPath(); ux.arc(x, y, r * 5, 0, TAU); ux.fill();
+  ux.fillStyle = core ? `rgba(255,250,240,${a})` : rgba(c, a); ux.beginPath(); ux.arc(x, y, r, 0, TAU); ux.fill();
+}
+
+function updateHeader() {
+  const h = $('#ratio'), s = $('#statline');
+  const showMe = phase !== 'idle' && phase !== 'pre';
+  if (!showMe) { h.innerHTML = ''; s.innerHTML = ''; return; }
+  const fb = F_ME * (1.5 + d);
+  const me = `<span class="m">${L.me} <b>${F_ME}</b> Hz</span>`, you = `<span class="y">${L.you} <b>${dec(fb, 1)}</b> Hz</span>`;
+  if (ax > .5 && ay > .5) {
+    const r = 3 + 2 * d;
+    const yv = locked || Math.abs(r - 3) < 5e-5 ? '3' : `${dec(r, 4).slice(0, -3)}<span class="dec">${dec(r, 4).slice(-3)}</span>`;
+    h.innerHTML = `<span class="me">2</span><span class="sep">:</span><span class="you">${yv}</span>`;
+    s.innerHTML = `${me} · ${you}`;
+  } else {
+    h.innerHTML = ax > ay ? `<span class="me">${L.me}</span>` : `<span class="you">${L.you}</span>`;
+    s.innerHTML = ax > ay ? me : you;
+  }
+}
+
+/* ---------------- builder ---------------- */
+function openBuilder() {
+  $('#builder').hidden = false; $('#intro').hidden = true; $('#ask').hidden = true;
+}
+/* Where the page lives on the web. Used when it is opened from a file, an app preview or about:blank,
+   so the link you send always points to a real page. Change it if you host the page on your own site. */
+const PUBLIC_URL = 'https://raw.githack.com/kapoios123/triadak/ccr-e80192b0-48yac7/pi-meet/harmony.html';
+const pageBase = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : PUBLIC_URL;
+function buildLink() {
+  const o = { to: $('#bTo').value.trim(), from: $('#bFrom').value.trim(), q: $('#bQ').value.trim(), n: parseInt($('#bN').value) || 0, l: lang };
+  return pageBase() + '#d=' + encode(o);
+}
+function go(url) {
+  if (url.split('#')[0] === location.href.split('#')[0]) { location.href = url; return; }
+  const w = window.open(url, '_blank', 'noopener'); if (!w) location.href = url;
+}
+
+function applyLang() {
+  L = T[lang];
+  document.documentElement.lang = lang;
+  document.title = L.title;
+  $('#langBtn').textContent = lang === 'el' ? 'EN' : 'ΕΛ';
+  $('#makeBtn').textContent = L.make;
+  stage.setAttribute('aria-label', L.aria);
+  $('#introTap').textContent = L.tap; $('#introSnd').textContent = L.snd;
+  $('#bTitle').innerHTML = L.bTitle; $('#bLead').textContent = L.bLead;
+  $('#bToL').textContent = L.bTo; $('#bFromL').textContent = L.bFrom; $('#bQL').textContent = L.bQ; $('#bNL').textContent = L.bN;
+  $('#bQ').placeholder = L.defaultQ;
+  $('#bMake').textContent = L.bMake; $('#bDemo').textContent = L.bDemo; $('#bReady').textContent = L.bReady;
+  $('#bCopy').textContent = L.copy; $('#bShare').textContent = L.share; $('#bPreview').textContent = L.preview;
+  $('#bPrivacy').textContent = L.privacy;
+  if (data && data.to) $('#forline').textContent = data.to;
+  else $('#forline').textContent = phase === 'idle' ? L.title : '';
+  updateHeader();
+}
+
+/* ---------------- start ---------------- */
+function begin() {
+  const intro = $('#intro');
+  intro.classList.add('gone'); setTimeout(() => intro.hidden = true, 1200);
+  Snd.start();
+  phase = 'story'; st = 0; scriptI = 0;
+  ax = 1; ay = 0; axT = 1; ayT = 0; vol = 0; volT = 1; ghost = ghostT = 0;
+  h0 = ht.length;   // start a clean picture
+}
+
+$('#muteBtn').onclick = () => { Snd.start(); $('#muteBtn').style.opacity = Snd.toggle() ? 1 : .45; };
+$('#langBtn').onclick = () => { lang = lang === 'el' ? 'en' : 'el'; if (data) data.l = lang; applyLang(); if (phase === 'ask') ask(); };
+$('#makeBtn').onclick = openBuilder;
+$('#yesBtn').onclick = sayYes;
+$('#noBtn').onclick = sayNo;
+$('#bMake').onclick = () => { const u = buildLink(); $('#bLink').textContent = u; $('#linkOut').hidden = false; };
+$('#bCopy').onclick = () => copy($('#bLink').textContent);
+$('#bShare').onclick = () => { const u = $('#bLink').textContent; navigator.share ? navigator.share({ url: u }).catch(() => {}) : copy(u); };
+$('#bPreview').onclick = () => go($('#bLink').textContent);
+$('#bDemo').onclick = () => go(pageBase() + '#d=' + encode({ to: '', from: '', q: '', n: 0, l: lang }));
+addEventListener('hashchange', () => location.reload());
+addEventListener('resize', () => { clearTimeout(layout.tm); layout.tm = setTimeout(layout, 80); });
+let paused = false;
+document.addEventListener('visibilitychange', () => { paused = document.hidden; last = performance.now(); Snd.suspend(paused); });
+
+let last = performance.now(), hdrAt = 0;
+function frame(now) {
+  const rdt = paused ? 0 : Math.min(.05, (now - last) / 1000); last = now;
+  const dt = rdt * SPEED;
+  clock += dt;
+  if (phase === 'story') {
+    st += dt; d = dStory(st);
+    while (scriptI < SCRIPT.length && st >= SCRIPT[scriptI][0]) SCRIPT[scriptI++][1]();
+  } else if (fin) finaleStep(dt);
+  else { st += dt; d = wander(st) * (phase === 'ask' ? .85 : 1); }
+  const kf = k => 1 - Math.exp(-dt * k);
+  ax += (axT - ax) * kf(2.2); ay += (ayT - ay) * kf(2.2);
+  vol += (volT - vol) * kf(1.5); ghost += (ghostT - ghost) * kf(1.2);
+  flash = Math.max(0, flash - dt / 1.6);
+  rot += rotV * dt;
+  integrate(dt);
+
+  const pan = locked ? .08 : fin ? .4 - .3 * clamp(fin.t / 7, 0, 1) : .4;
+  Snd.update(F_ME * (1.5 + d), .1 * vol * ax, .1 * vol * ay, pan);
+
+  const B = beatBright(rdt);
+  drawScope(B);
+  drawUI();
+  bx.clearRect(0, 0, bloom.width, bloom.height);
+  bx.drawImage(scope, 0, 0, bloom.width, bloom.height);
+  if (now - hdrAt > 140) { hdrAt = now; updateHeader(); }
+  requestAnimationFrame(frame);
+}
+
+if (data) {
+  phase = 'pre';
+  $('#introName').textContent = data.to || '';
+  $('#intro').hidden = false;
+  $('#intro').addEventListener('click', begin, { once: true });
+} else {
+  phase = 'idle';
+  $('#builder').hidden = false;
+}
+applyLang();
+layout();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
